@@ -40,7 +40,7 @@ const PublicHeader = ({ cartCount = 0, onCart, rightSlot, title = "GODZ Café", 
             <button type="button" onClick={onCart} className="relative carolina-btn !min-h-[40px] !px-3 sm:!px-4 text-xs sm:text-sm">
               السلة
               {cartCount > 0 && (
-                <span className="absolute -top-1 -left-1 min-w-[1.15rem] h-5 px-1 rounded-full bg-[#2c241c] text-white text-[10px] flex items-center justify-center">
+                <span className="absolute -top-1 -left-1 min-w-[1.15rem] h-5 px-1 rounded-full bg-[#2c241c] text-[#2c241c] text-[10px] flex items-center justify-center">
                   {cartCount}
                 </span>
               )}
@@ -53,3 +53,4 @@ const PublicHeader = ({ cartCount = 0, onCart, rightSlot, title = "GODZ Café", 
 };
 
 export default PublicHeader;
+

@@ -16,14 +16,14 @@ RUN npm ci --omit=dev
 FROM node:22-bookworm-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
-ENV DB_PATH=/app/data
-ENV FRONTEND_DIST=/app/cafe-pos-demo/dist
+ENV FRONTEND_DIST=/app/frontend/dist
 
 COPY --from=backend-deps /build/backend/node_modules ./node_modules
 COPY ["backend/", "./"]
-COPY --from=frontend-build /build/frontend/dist ./cafe-pos-demo/dist
+COPY --from=frontend-build /build/frontend/dist ./frontend/dist
 
-RUN mkdir -p /app/data /app/uploads/menu
+RUN mkdir -p /app/uploads/menu
 
 EXPOSE 3001
 CMD ["npm", "start"]
+

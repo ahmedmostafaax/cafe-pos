@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getPublicMenu, createPublicOrder } from "../api/public";
 import { callStaff } from "../api/session";
+import { createServiceCall } from "../api/serviceCalls";
 import type { MenuItem } from "../types";
 import Toast from "../components/Toast";
 import PaymentGatewayModal from "../components/PaymentGatewayModal";
@@ -110,6 +111,13 @@ const CustomerMenu = () => {
     try {
       setCallingStaff(true);
       await callStaff(tableNo || "1", type, `نداء من طاولة ${tableNo}`);
+      try {
+        await createServiceCall({
+          tableId: String(tableNo || "1"),
+          type: type === "napkin" ? "napkins" : type === "help" || type === "other" ? "staff" : type,
+          note: `نداء من طاولة ${tableNo}`,
+        });
+      } catch { /* mirrored on backend too */ }
       setShowCallModal(false);
       setToast(`🔔 تم إرسال "${label}" للكاشير والمدير بنجاح!`);
     } catch {
@@ -165,20 +173,20 @@ const CustomerMenu = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0e17] text-slate-100 pb-28">
+    <div className="min-h-screen bg-[#f7f3ee] text-[#2c241c] pb-28">
       {toast && <Toast message={toast} onClose={() => setToast("")} />}
 
       {/* Hero Café Header */}
-      <header className="relative bg-gradient-to-b from-[#151b2e] via-[#0f1422] to-[#0b0e17] border-b border-[#242c47] px-4 pt-6 pb-6 text-center">
+      <header className="relative bg-gradient-to-b from-[#2b211c] via-[#241c18] to-[#1a1410] border-b border-[#e2d3c2] px-4 pt-6 pb-6 text-center">
         <div className="max-w-3xl mx-auto space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#e94560]/15 border border-[#e94560]/30 text-[#e94560] text-xs font-bold">
-            <span>⚡ GODZ CAFÉ & RESTAURANT</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#9c6b4a]/15 border border-[#9c6b4a]/40 text-[#e8c39e] text-xs font-bold">
+            <span>☕ GODZ CAFÉ & RESTAURANT</span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-wide">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#2c241c] tracking-wide">
             منيو الطلبات — طاولة {tableNo || "1"}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
+          <p className="text-xs sm:text-sm text-[#7a6a5c] max-w-md mx-auto">
             اختر أشهى المأكولات والمشروبات واطلبها فورياً من طاولتك مع خيارات الدفع الإلكتروني.
           </p>
 
@@ -196,7 +204,7 @@ const CustomerMenu = () => {
       </header>
 
       {/* Search & Categories Bar */}
-      <div className="sticky top-0 z-30 bg-[#0b0e17]/95 backdrop-blur-md border-b border-[#242c47] p-3 shadow-lg">
+      <div className="sticky top-0 z-30 bg-[#f7f3ee]/95 backdrop-blur-md border-b border-[#e2d3c2] p-3 shadow-lg">
         <div className="max-w-4xl mx-auto space-y-3">
           {/* Search */}
           <input
@@ -211,10 +219,10 @@ const CustomerMenu = () => {
           <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1">
             <button
               onClick={() => setActiveCat("all")}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold shrink-0 transition-all ${
+              className={`px-4 py-2.5 min-h-[40px] rounded-full text-xs font-bold shrink-0 transition-all ${
                 activeCat === "all"
-                  ? "bg-[#e94560] text-white shadow-md shadow-[#e94560]/30"
-                  : "bg-[#151b2e] text-slate-300 border border-[#242c47] hover:border-slate-500"
+                  ? "bg-[#9c6b4a] text-white shadow-md shadow-[#9c6b4a]/30"
+                  : "bg-white text-[#5c4a3e] border border-[#e2d3c2] hover:border-slate-500"
               }`}
             >
               🌟 الكل ({menu.length})
@@ -224,10 +232,10 @@ const CustomerMenu = () => {
               <button
                 key={c}
                 onClick={() => setActiveCat(c)}
-                className={`px-4 py-1.5 rounded-full text-xs font-bold shrink-0 transition-all ${
+                className={`px-4 py-2.5 min-h-[40px] rounded-full text-xs font-bold shrink-0 transition-all ${
                   activeCat === c
-                    ? "bg-[#e94560] text-white shadow-md shadow-[#e94560]/30"
-                    : "bg-[#151b2e] text-slate-300 border border-[#242c47] hover:border-slate-500"
+                    ? "bg-[#9c6b4a] text-white shadow-md shadow-[#9c6b4a]/30"
+                    : "bg-white text-[#5c4a3e] border border-[#e2d3c2] hover:border-slate-500"
                 }`}
               >
                 {c}
@@ -240,9 +248,9 @@ const CustomerMenu = () => {
       {/* Menu Grid */}
       <main className="max-w-4xl mx-auto p-4">
         {loading ? (
-          <div className="py-20 text-center text-slate-400">جاري تحميل قائمة المنيو...</div>
+          <div className="py-20 text-center text-[#7a6a5c]">جاري تحميل قائمة المنيو...</div>
         ) : filteredMenu.length === 0 ? (
-          <div className="card-luxury py-20 text-center text-slate-400">لا توجد أصناف تطابق بحثك.</div>
+          <div className="card-luxury py-20 text-center text-[#7a6a5c]">لا توجد أصناف تطابق بحثك.</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredMenu.map((item) => {
@@ -253,52 +261,52 @@ const CustomerMenu = () => {
               return (
                 <div
                   key={item._id}
-                  className="card-luxury overflow-hidden flex flex-col justify-between hover:border-[#e94560]/50 transition-all group"
+                  className="card-luxury overflow-hidden flex flex-col justify-between hover:border-[#9c6b4a]/50 transition-all group"
                 >
-                  <div className="relative h-40 overflow-hidden bg-[#0f1422]">
+                  <div className="relative h-40 overflow-hidden bg-[#fffcf8]">
                     <img
                       src={imgUrl}
                       alt={item.nameAr || item.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       loading="lazy"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#151b2e] via-transparent to-transparent" />
-                    <span className="absolute bottom-2 right-2 px-2.5 py-1 rounded-lg bg-[#0b0e17]/80 backdrop-blur text-white text-xs font-bold border border-[#242c47]">
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#2b211c] via-transparent to-transparent" />
+                    <span className="absolute bottom-2 right-2 px-2.5 py-1 rounded-lg bg-[#f7f3ee]/80 backdrop-blur text-[#2c241c] text-xs font-bold border border-[#e2d3c2]">
                       {item.price} ج.م
                     </span>
                   </div>
 
                   <div className="p-4 flex flex-col justify-between flex-1 space-y-3">
                     <div>
-                      <h3 className="font-bold text-white text-base leading-snug">
+                      <h3 className="font-bold text-[#2c241c] text-base leading-snug">
                         {item.nameAr || item.name}
                       </h3>
                       {item.descAr && (
-                        <p className="text-xs text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                        <p className="text-xs text-[#7a6a5c] mt-1 line-clamp-2 leading-relaxed">
                           {item.descAr}
                         </p>
                       )}
                     </div>
 
-                    <div className="pt-2 flex items-center justify-between border-t border-[#242c47]">
-                      <span className="text-[11px] text-slate-400">
+                    <div className="pt-2 flex items-center justify-between border-t border-[#e2d3c2]">
+                      <span className="text-[11px] text-[#7a6a5c]">
                         {item.station === "bar" ? "🥤 البار" : "👨‍🍳 المطبخ"}
                       </span>
 
                       {inCart ? (
-                        <div className="flex items-center gap-2 bg-[#0f1422] border border-[#242c47] rounded-xl p-1">
+                        <div className="flex items-center gap-2 bg-[#fffcf8] border border-[#e2d3c2] rounded-xl p-1">
                           <button
                             onClick={() => updateQty(item._id, -1)}
-                            className="w-7 h-7 rounded-lg bg-[#1e263d] text-white font-bold grid place-items-center hover:bg-rose-600"
+                            className="w-9 h-9 rounded-lg bg-[#efe6db] text-[#2c241c] font-bold grid place-items-center hover:bg-[#6f4a32] active:scale-95"
                           >
                             -
                           </button>
-                          <span className="font-bold text-sm text-white px-1 font-mono">
+                          <span className="font-bold text-sm text-[#2c241c] px-1 font-mono">
                             {inCart.qty}
                           </span>
                           <button
                             onClick={() => updateQty(item._id, 1)}
-                            className="w-7 h-7 rounded-lg bg-[#e94560] text-white font-bold grid place-items-center hover:bg-[#c0392b]"
+                            className="w-9 h-9 rounded-lg bg-[#9c6b4a] text-white font-bold grid place-items-center hover:bg-[#6f4a32] active:scale-95"
                           >
                             +
                           </button>
@@ -322,21 +330,21 @@ const CustomerMenu = () => {
 
       {/* Floating Bottom Cart Bar */}
       {cart.length > 0 && (
-        <div className="fixed bottom-4 inset-x-4 max-w-xl mx-auto z-40">
-          <div className="card-luxury bg-gradient-to-r from-[#1c243c] via-[#242e4c] to-[#1c243c] border-[#e94560]/40 p-4 shadow-2xl flex items-center justify-between">
+        <div className="fixed bottom-4 inset-x-4 max-w-xl mx-auto z-40 pb-safe">
+          <div className="card-luxury bg-gradient-to-r from-[#241c18] via-[#2b211c] to-[#241c18] border-[#9c6b4a]/40 p-4 shadow-2xl flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#e94560] text-white font-bold grid place-items-center shadow-lg">
+              <div className="w-10 h-10 rounded-xl bg-[#9c6b4a] text-white font-bold grid place-items-center shadow-lg">
                 {totalCount}
               </div>
               <div>
-                <div className="text-xs text-slate-300">إجمالي الطلب:</div>
-                <div className="text-lg font-bold text-white font-mono">{total} ج.م</div>
+                <div className="text-xs text-[#5c4a3e]">إجمالي الطلب:</div>
+                <div className="text-lg font-bold text-[#2c241c] font-mono">{total} ج.م</div>
               </div>
             </div>
 
             <button
               onClick={() => setShowCart(true)}
-              className="btn-primary text-sm py-2.5 px-5 shadow-lg shadow-[#e94560]/40"
+              className="btn-primary text-sm py-2.5 px-5 shadow-lg shadow-[#9c6b4a]/40"
             >
               عرض السلة والدفع ←
             </button>
@@ -347,14 +355,14 @@ const CustomerMenu = () => {
       {/* Cart Bottom Sheet Modal */}
       {showCart && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="card-luxury w-full max-w-lg bg-[#151b2e] border-[#374167] rounded-b-none sm:rounded-2xl p-5 shadow-2xl max-h-[85vh] flex flex-col">
-            <div className="flex items-center justify-between pb-3 border-b border-[#242c47] mb-3">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+          <div className="card-luxury w-full max-w-lg bg-white border-[#e2d3c2] rounded-b-none sm:rounded-2xl p-5 shadow-2xl max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between pb-3 border-b border-[#e2d3c2] mb-3">
+              <h2 className="text-lg font-bold text-[#2c241c] flex items-center gap-2">
                 <span>🛍️</span> طلب طاولة {tableNo} ({cart.length} أصناف)
               </h2>
               <button
                 onClick={() => setShowCart(false)}
-                className="text-slate-400 hover:text-white text-xl"
+                className="text-[#7a6a5c] hover:text-[#2c241c] text-xl"
               >
                 ✕
               </button>
@@ -365,26 +373,26 @@ const CustomerMenu = () => {
               {cart.map((item) => (
                 <div
                   key={item.menuId}
-                  className="flex items-center justify-between p-3 rounded-xl bg-[#0f1422] border border-[#242c47]"
+                  className="flex items-center justify-between p-3 rounded-xl bg-[#fffcf8] border border-[#e2d3c2]"
                 >
                   <div>
-                    <h4 className="font-bold text-white text-sm">{item.name}</h4>
+                    <h4 className="font-bold text-[#2c241c] text-sm">{item.name}</h4>
                     <p className="text-xs text-emerald-400 font-mono mt-0.5">
                       {item.price} ج.م × {item.qty} = {item.price * item.qty} ج.م
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2 bg-[#151b2e] border border-[#242c47] rounded-xl p-1">
+                  <div className="flex items-center gap-2 bg-white border border-[#e2d3c2] rounded-xl p-1">
                     <button
                       onClick={() => updateQty(item.menuId, -1)}
-                      className="w-7 h-7 rounded-lg bg-[#1e263d] text-white font-bold grid place-items-center"
+                      className="w-7 h-7 rounded-lg bg-[#efe6db] text-[#2c241c] font-bold grid place-items-center"
                     >
                       -
                     </button>
-                    <span className="font-bold text-sm text-white px-1.5 font-mono">{item.qty}</span>
+                    <span className="font-bold text-sm text-[#2c241c] px-1.5 font-mono">{item.qty}</span>
                     <button
                       onClick={() => updateQty(item.menuId, 1)}
-                      className="w-7 h-7 rounded-lg bg-[#e94560] text-white font-bold grid place-items-center"
+                      className="w-7 h-7 rounded-lg bg-[#9c6b4a] text-white font-bold grid place-items-center"
                     >
                       +
                     </button>
@@ -405,9 +413,9 @@ const CustomerMenu = () => {
             </div>
 
             {/* Total Summary */}
-            <div className="mt-4 pt-3 border-t border-[#242c47] space-y-2">
+            <div className="mt-4 pt-3 border-t border-[#e2d3c2] space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-400">الإجمالي النهائي:</span>
+                <span className="text-[#7a6a5c]">الإجمالي النهائي:</span>
                 <span className="text-xl font-bold text-emerald-400 font-mono">{total} ج.م</span>
               </div>
 
@@ -437,17 +445,17 @@ const CustomerMenu = () => {
       {/* Staff Call Modal */}
       {showCallModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="card-luxury w-full max-w-sm bg-[#151b2e] border-[#374167] p-5 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-[#242c47] pb-3">
-              <h3 className="font-bold text-white text-base flex items-center gap-2">
+          <div className="card-luxury w-full max-w-sm bg-white border-[#e2d3c2] p-5 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-[#e2d3c2] pb-3">
+              <h3 className="font-bold text-[#2c241c] text-base flex items-center gap-2">
                 <span>🔔</span> نداء إلى طاقم العمل (طاولة {tableNo})
               </h3>
-              <button onClick={() => setShowCallModal(false)} className="text-slate-400 text-lg">
+              <button onClick={() => setShowCallModal(false)} className="text-[#7a6a5c] text-lg">
                 ✕
               </button>
             </div>
 
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-[#7a6a5c]">
               اختر نوع المساعدة وسيصل تنبيه صوتي فوري لشاشة المدير والكاشير:
             </p>
 
@@ -455,37 +463,37 @@ const CustomerMenu = () => {
               <button
                 disabled={callingStaff}
                 onClick={() => handleCallStaff("bill", "طلب الحساب")}
-                className="p-3.5 rounded-xl bg-[#0f1422] border border-[#242c47] hover:border-emerald-500 text-center transition-all group"
+                className="p-3.5 rounded-xl bg-[#fffcf8] border border-[#e2d3c2] hover:border-emerald-500 text-center transition-all group"
               >
                 <div className="text-2xl mb-1 group-hover:scale-110 transition-transform">💵</div>
-                <div className="text-xs font-bold text-white">طلب الحساب</div>
+                <div className="text-xs font-bold text-[#2c241c]">طلب الحساب</div>
               </button>
 
               <button
                 disabled={callingStaff}
                 onClick={() => handleCallStaff("help", "طلب النادل")}
-                className="p-3.5 rounded-xl bg-[#0f1422] border border-[#242c47] hover:border-amber-500 text-center transition-all group"
+                className="p-3.5 rounded-xl bg-[#fffcf8] border border-[#e2d3c2] hover:border-amber-500 text-center transition-all group"
               >
                 <div className="text-2xl mb-1 group-hover:scale-110 transition-transform">🙋‍♂️</div>
-                <div className="text-xs font-bold text-white">طلب النادل</div>
+                <div className="text-xs font-bold text-[#2c241c]">طلب النادل</div>
               </button>
 
               <button
                 disabled={callingStaff}
                 onClick={() => handleCallStaff("water", "طلب مياه")}
-                className="p-3.5 rounded-xl bg-[#0f1422] border border-[#242c47] hover:border-sky-500 text-center transition-all group"
+                className="p-3.5 rounded-xl bg-[#fffcf8] border border-[#e2d3c2] hover:border-sky-500 text-center transition-all group"
               >
                 <div className="text-2xl mb-1 group-hover:scale-110 transition-transform">💧</div>
-                <div className="text-xs font-bold text-white">طلب مياه</div>
+                <div className="text-xs font-bold text-[#2c241c]">طلب مياه</div>
               </button>
 
               <button
                 disabled={callingStaff}
                 onClick={() => handleCallStaff("napkins", "طلب مناديل")}
-                className="p-3.5 rounded-xl bg-[#0f1422] border border-[#242c47] hover:border-purple-500 text-center transition-all group"
+                className="p-3.5 rounded-xl bg-[#fffcf8] border border-[#e2d3c2] hover:border-purple-500 text-center transition-all group"
               >
                 <div className="text-2xl mb-1 group-hover:scale-110 transition-transform">🧻</div>
-                <div className="text-xs font-bold text-white">طلب مناديل</div>
+                <div className="text-xs font-bold text-[#2c241c]">طلب مناديل</div>
               </button>
             </div>
           </div>
@@ -519,3 +527,4 @@ const CustomerMenu = () => {
 };
 
 export default CustomerMenu;
+

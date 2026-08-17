@@ -1,16 +1,42 @@
 services:
-  cafe-pos-demo:
+  mongo:
+    image: mongo:7
+    container_name: godz-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  redis:
+    image: redis:7-alpine
+    container_name: godz-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  cafe-pos:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: cafe-pos-demo
+    container_name: godz-pos
     restart: unless-stopped
     ports:
       - "3001:3001"
     environment:
       NODE_ENV: production
-      DB_PATH: /app/data
-      FRONTEND_DIST: /app/cafe-pos-demo/dist
+      PORT: 3001
+      MONGO_URI: mongodb://mongo:27017/godz_pos
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-godz_prod_change_me}
+      JWT_EXPIRES_IN: 7d
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3001}
+    depends_on:
+      - mongo
+      - redis
     volumes:
-      - ./data:/app/data
       - ./uploads:/app/uploads
+
+volumes:
+  mongo_data:
+

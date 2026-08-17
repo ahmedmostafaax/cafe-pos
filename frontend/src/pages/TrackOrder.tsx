@@ -47,7 +47,7 @@ const TrackOrder = () => {
 
   if (!order) {
     return (
-      <div className="min-h-screen bg-[#0b0e17] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[#f7f3ee] flex items-center justify-center p-4">
         <Spinner />
       </div>
     );
@@ -67,26 +67,26 @@ const TrackOrder = () => {
       : 0;
 
   return (
-    <div className="min-h-screen bg-[#0b0e17] text-slate-100 p-4 md:p-8">
+    <div className="min-h-screen bg-[#f7f3ee] text-[#2c241c] p-4 md:p-8">
       {toast && <Toast message={toast} onClose={() => setToast("")} />}
 
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#e94560]/15 border border-[#e94560]/30 text-[#e94560] text-xs font-bold">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#9c6b4a]/15 border border-[#9c6b4a]/30 text-[#e8c39e] text-xs font-bold">
             <span>⚡ GODZ CAFÉ LIVE TRACKING</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#2c241c]">
             متابعة طلبك {order.orderNumber}
           </h1>
-          <p className="text-slate-400 text-xs sm:text-sm">
+          <p className="text-[#7a6a5c] text-xs sm:text-sm">
             طاولة {order.tableId} • تم الطلب منذ {elapsed} دقيقة
           </p>
         </div>
 
         {/* Live Timeline */}
         <div className="card-luxury p-6 space-y-4">
-          <h3 className="text-sm font-bold text-white">حالة الطلب اللحظية:</h3>
+          <h3 className="text-sm font-bold text-[#2c241c]">حالة الطلب اللحظية:</h3>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {statusSteps.map((step, idx) => {
@@ -98,10 +98,10 @@ const TrackOrder = () => {
                   key={step.key}
                   className={`p-3 rounded-2xl border text-center transition-all ${
                     isCurrent
-                      ? "bg-[#e94560]/15 border-[#e94560] text-white shadow-lg shadow-[#e94560]/20 scale-105"
+                      ? "bg-[#9c6b4a]/15 border-[#9c6b4a] text-[#2c241c] shadow-lg shadow-[#9c6b4a]/20 scale-105"
                       : isDone
                       ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
-                      : "bg-[#0f1422] border-[#242c47] text-slate-500"
+                      : "bg-[#fffcf8] border-[#e2d3c2] text-slate-500"
                   }`}
                 >
                   <div className="text-2xl mb-1">{step.icon}</div>
@@ -117,8 +117,8 @@ const TrackOrder = () => {
 
         {/* Order Details & Payment Bar */}
         <div className="card-luxury p-6 space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-[#242c47]">
-            <span className="font-bold text-white text-base">الأصناف المطلوبة</span>
+          <div className="flex items-center justify-between pb-3 border-b border-[#e2d3c2]">
+            <span className="font-bold text-[#2c241c] text-base">الأصناف المطلوبة</span>
             <span
               className={`px-3 py-1 rounded-full text-xs font-bold border ${
                 isPaid
@@ -134,19 +134,19 @@ const TrackOrder = () => {
             {order.items.map((i, idx) => (
               <div
                 key={idx}
-                className="flex items-center justify-between text-sm p-2 rounded-xl bg-[#0f1422]"
+                className="flex items-center justify-between text-sm p-2 rounded-xl bg-[#fffcf8]"
               >
-                <div className="font-bold text-white">
-                  {i.name} <span className="text-xs text-slate-400 font-normal">× {i.qty}</span>
+                <div className="font-bold text-[#2c241c]">
+                  {i.name} <span className="text-xs text-[#7a6a5c] font-normal">× {i.qty}</span>
                 </div>
                 <div className="font-mono text-emerald-400 font-bold">{i.price * i.qty} ج.م</div>
               </div>
             ))}
           </div>
 
-          <div className="pt-3 border-t border-[#242c47] flex items-center justify-between">
-            <span className="text-slate-400 font-semibold">الإجمالي المطلوب:</span>
-            <span className="text-2xl font-bold text-white font-mono">{order.totalPrice} ج.م</span>
+          <div className="pt-3 border-t border-[#e2d3c2] flex items-center justify-between">
+            <span className="text-[#7a6a5c] font-semibold">الإجمالي المطلوب:</span>
+            <span className="text-2xl font-bold text-[#2c241c] font-mono">{order.totalPrice} ج.م</span>
           </div>
 
           {!isPaid && (
@@ -164,7 +164,7 @@ const TrackOrder = () => {
 
         {/* Rating Section */}
         <div className="card-luxury p-6 space-y-4">
-          <h3 className="text-base font-bold text-white">⭐ تقييمك للخدمة والطعام</h3>
+          <h3 className="text-base font-bold text-[#2c241c]">⭐ تقييمك للخدمة والطعام</h3>
 
           {rated ? (
             <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center text-emerald-300 text-xs">
@@ -205,7 +205,7 @@ const TrackOrder = () => {
         <div className="text-center pt-2">
           <button
             onClick={() => navigate(`/table/${order.tableId}`)}
-            className="text-slate-400 hover:text-white text-xs underline"
+            className="text-[#7a6a5c] hover:text-[#2c241c] text-xs underline"
           >
             ← العودة لقائمة المنيو
           </button>
@@ -232,3 +232,4 @@ const TrackOrder = () => {
 };
 
 export default TrackOrder;
+

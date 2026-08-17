@@ -100,7 +100,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div style={{ color: "#fff" }}>
+    <div style={{ color: "#2c241c" }}>
       {toast && (
         <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />
       )}
@@ -154,7 +154,7 @@ const Dashboard = () => {
               onClick={() => navigate(`/table-view/${tb.tableNo}`)}
               style={{
                 ...styles.tableCard,
-                borderColor: isOccupied ? "#e94560" : "#2a2a3e",
+                borderColor: isOccupied ? "#e94560" : "#e2d3c2",
                 background: isOccupied ? "#1f1018" : "#1a1a2e",
               }}
             >
@@ -191,7 +191,7 @@ const styles: Record<string, React.CSSProperties> = {
     background: "#1a1a2e",
     borderRadius: 16,
     padding: 18,
-    border: "1px solid #2a2a3e",
+    border: "1px solid #e2d3c2",
   },
   statLabel: { color: "#777", fontSize: 13, marginBottom: 6 },
   statValue: { fontSize: 28, fontWeight: 800 },
@@ -211,8 +211,9 @@ const styles: Record<string, React.CSSProperties> = {
     padding: 18,
     textAlign: "center",
     cursor: "pointer",
-    border: "2px solid #2a2a3e",
+    border: "2px solid #e2d3c2",
   },
 };
 
 export default Dashboard;
+

@@ -102,7 +102,7 @@ const OffersPage = () => {
 };
 
 const inp: React.CSSProperties = { padding: 10, borderRadius: 8, border: "none", background: "#1a1a2e", color: "#fff" };
-const btn: React.CSSProperties = { padding: "10px 14px", borderRadius: 8, border: "none", background: "#e94560", color: "#fff", cursor: "pointer", fontWeight: 600 };
+const btn: React.CSSProperties = { padding: "10px 14px", borderRadius: 8, border: "none", background: "#9c6b4a", color: "#fff", cursor: "pointer", fontWeight: 600 };
 const row: React.CSSProperties = { background: "#1a1a2e", padding: 14, borderRadius: 10, marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center" };
 
 export default OffersPage;

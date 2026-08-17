@@ -6,6 +6,7 @@ import PublicHeader from "../components/PublicHeader";
 import Spinner from "../components/Spinner";
 import Toast from "../components/Toast";
 import { useCustomerAuth } from "../contexts/CustomerAuthContext";
+import "./OnlineOrder.css";
 
 const HERO_IMG =
   "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1600&q=80";
@@ -122,7 +123,7 @@ const OnlineOrder = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f3ee] text-[#2c241c]">
+    <div className="min-h-screen carolina-light">
       {toast && <Toast message={toast} type="info" onClose={() => setToast("")} />}
 
       <PublicHeader
@@ -270,9 +271,24 @@ const OnlineOrder = () => {
 
       {/* ABOUT */}
       <section id="about" className="max-w-6xl mx-auto px-4 py-12">
-        <div className="carolina-card p-8 md:p-10 text-center bg-gradient-to-br from-[#fffcf8] to-[#efe6db]">
-          <h2 className="text-2xl font-bold text-[#2c241c]">أجواء الكافيه… أينما كنت</h2>
-          <p className="mt-3 text-[#7a6a5c] max-w-xl mx-auto text-sm leading-relaxed">
+        <div
+          className="rounded-2xl p-8 md:p-10 text-center border shadow-sm"
+          style={{
+            background: "linear-gradient(135deg, #fffcf8, #efe6db)",
+            borderColor: "#e2d3c2",
+            color: "#2c241c",
+          }}
+        >
+          <h2
+            className="text-2xl font-bold"
+            style={{ color: "#2c241c" }}
+          >
+            أجواء الكافيه… أينما كنت
+          </h2>
+          <p
+            className="mt-3 max-w-xl mx-auto text-sm leading-relaxed"
+            style={{ color: "#5c4a3e" }}
+          >
             في GODZ نختار المكوّنات بعناية ونقدّم تجربة بسيطة: اطلب من البيت أو من الطاولة عبر QR، وتابع حالة طلبك لحظة بلحظة.
           </p>
         </div>
@@ -369,3 +385,4 @@ const OnlineOrder = () => {
 };
 
 export default OnlineOrder;
+

@@ -181,11 +181,11 @@ const UsersPage = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="bg-[#151b2e] border border-[#242c47] p-1 rounded-xl flex gap-1">
+          <div className="bg-[#2b211c] border border-[#4a3a30] p-1 rounded-xl flex gap-1">
             <button
               onClick={() => setActiveTab("list")}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
-                activeTab === "list" ? "bg-[#e94560] text-white" : "text-slate-400 hover:text-white"
+                activeTab === "list" ? "bg-[#9c6b4a] text-white" : "text-slate-400 hover:text-white"
               }`}
             >
               📋 قائمة الموظفين
@@ -193,7 +193,7 @@ const UsersPage = () => {
             <button
               onClick={() => setActiveTab("shifts")}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
-                activeTab === "shifts" ? "bg-[#e94560] text-white" : "text-slate-400 hover:text-white"
+                activeTab === "shifts" ? "bg-[#9c6b4a] text-white" : "text-slate-400 hover:text-white"
               }`}
             >
               ⏰ جدول الشيفتات
@@ -313,7 +313,7 @@ const UsersPage = () => {
                       {/* Top Info */}
                       <div className="flex items-start justify-between gap-3 mb-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#1e263d] to-[#0f1422] border border-[#242c47] grid place-items-center text-xl font-bold text-white shadow-inner">
+                          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#3d2e24] to-[#241c18] border border-[#4a3a30] grid place-items-center text-xl font-bold text-white shadow-inner">
                             {u.name.charAt(0)}
                           </div>
                           <div>
@@ -332,7 +332,7 @@ const UsersPage = () => {
                       {/* Details */}
                       <div className="space-y-2 mt-4 text-xs">
                         {/* Shift Badge */}
-                        <div className="flex items-center justify-between p-2 rounded-xl bg-[#0f1422] border border-[#242c47]">
+                        <div className="flex items-center justify-between p-2 rounded-xl bg-[#241c18] border border-[#4a3a30]">
                           <span className="text-slate-400 flex items-center gap-1.5">
                             <span>{shiftInfo.icon}</span> الوردية:
                           </span>
@@ -365,7 +365,7 @@ const UsersPage = () => {
                     </div>
 
                     {/* Actions */}
-                    <div className="mt-5 pt-4 border-t border-[#242c47] flex items-center justify-between gap-2">
+                    <div className="mt-5 pt-4 border-t border-[#4a3a30] flex items-center justify-between gap-2">
                       <button
                         onClick={() => handleToggleStatus(u._id)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
@@ -380,7 +380,7 @@ const UsersPage = () => {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => openEditModal(u)}
-                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#1e263d] text-slate-200 hover:bg-[#28324f] border border-[#242c47]"
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#3d2e24] text-slate-200 hover:bg-[#4a3a30] border border-[#4a3a30]"
                         >
                           تعديل
                         </button>
@@ -407,7 +407,7 @@ const UsersPage = () => {
 
             return (
               <div key={shiftKey} className="card-luxury p-5 space-y-4">
-                <div className="flex items-center justify-between border-b border-[#242c47] pb-3">
+                <div className="flex items-center justify-between border-b border-[#4a3a30] pb-3">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl">{shiftInfo.icon}</span>
                     <div>
@@ -415,7 +415,7 @@ const UsersPage = () => {
                       <p className="text-xs text-slate-400">{shiftInfo.hours}</p>
                     </div>
                   </div>
-                  <span className="px-2.5 py-1 rounded-full bg-[#1e263d] text-xs font-bold text-white border border-[#242c47]">
+                  <span className="px-2.5 py-1 rounded-full bg-[#3d2e24] text-xs font-bold text-white border border-[#4a3a30]">
                     {shiftStaff.length} موظف
                   </span>
                 </div>
@@ -429,7 +429,7 @@ const UsersPage = () => {
                       return (
                         <div
                           key={staff._id}
-                          className="flex items-center justify-between p-3 rounded-xl bg-[#0f1422] border border-[#242c47]"
+                          className="flex items-center justify-between p-3 rounded-xl bg-[#241c18] border border-[#4a3a30]"
                         >
                           <div>
                             <div className="font-bold text-white text-sm">{staff.name}</div>
@@ -452,8 +452,8 @@ const UsersPage = () => {
       {/* Add / Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="card-luxury w-full max-w-lg p-6 bg-[#151b2e] border-[#374167] shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-[#242c47] pb-4 mb-4">
+          <div className="card-luxury w-full max-w-lg p-6 bg-[#2b211c] border-[#5c4a3e] shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-[#4a3a30] pb-4 mb-4">
               <h2 className="text-xl font-bold text-white">
                 {editingUser ? "✏️ تعديل بيانات الموظف" : "➕ إضافة موظف جديد"}
               </h2>
@@ -572,7 +572,7 @@ const UsersPage = () => {
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#242c47]">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#4a3a30]">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}

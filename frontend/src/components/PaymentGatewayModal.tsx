@@ -83,43 +83,43 @@ export const PaymentGatewayModal = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="card-luxury w-full max-w-md bg-[#121626] border-[#374167] shadow-2xl overflow-hidden relative animate-in fade-in zoom-in-95 duration-200">
+      <div className="card-luxury w-full max-w-md bg-[#fffcf8] border-[#e2d3c2] shadow-2xl overflow-hidden relative animate-in fade-in zoom-in-95 duration-200">
         {/* Gateway Header */}
-        <div className="bg-gradient-to-r from-[#1c243c] via-[#242e4c] to-[#1c243c] p-4 border-b border-[#2d3758] flex items-center justify-between">
+        <div className="bg-gradient-to-r from-[#2b211c] via-[#3d2e24] to-[#2b211c] p-4 border-b border-[#e2d3c2] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#e94560] grid place-items-center text-white font-bold text-sm shadow">
+            <div className="w-8 h-8 rounded-lg bg-[#9c6b4a] grid place-items-center text-[#2c241c] font-bold text-sm shadow">
               ⚡
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-bold text-white text-sm">بوابة دفع كاشير | Kashier</h3>
+                <h3 className="font-bold text-[#2c241c] text-sm">بوابة دفع جودز · Kashier</h3>
                 <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-500/30">
                   🔒 مشفر 256-bit
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400">دفع إلكتروني آمن وفوري</p>
+              <p className="text-[11px] text-[#7a6a5c]">دفع إلكتروني آمن وفوري</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
             disabled={loading}
-            className="text-slate-400 hover:text-white p-1 text-lg"
+            className="text-[#7a6a5c] hover:text-[#2c241c] p-1 text-lg"
           >
             ✕
           </button>
         </div>
 
         {/* Order Summary Bar */}
-        <div className="bg-[#0b0e17] px-5 py-3 flex items-center justify-between border-b border-[#242c47]">
+        <div className="bg-[#f7f3ee] px-5 py-3 flex items-center justify-between border-b border-[#e2d3c2]">
           <div>
-            <span className="text-xs text-slate-400">رقم الطلب: </span>
-            <span className="text-xs font-bold text-white font-mono">{orderNumber}</span>
-            {tableId && <span className="text-xs text-slate-400 mr-2">(طاولة {tableId})</span>}
+            <span className="text-xs text-[#7a6a5c]">رقم الطلب: </span>
+            <span className="text-xs font-bold text-[#2c241c] font-mono">{orderNumber}</span>
+            {tableId && <span className="text-xs text-[#7a6a5c] mr-2">(طاولة {tableId})</span>}
           </div>
 
           <div className="text-left">
-            <span className="text-xs text-slate-400 block">المبلغ المطلوب:</span>
+            <span className="text-xs text-[#7a6a5c] block">المبلغ المطلوب:</span>
             <span className="text-lg font-bold text-emerald-400 font-mono">{totalAmount} ج.م</span>
           </div>
         </div>
@@ -129,28 +129,28 @@ export const PaymentGatewayModal = ({
           {step === "processing" ? (
             <div className="py-12 text-center space-y-4">
               <div className="w-16 h-16 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mx-auto" />
-              <h4 className="text-base font-bold text-white">جاري معالجة الدفع عبر كاشير...</h4>
-              <p className="text-xs text-slate-400">يرجى الانتظار ثوانٍ قليلة لتأكيد العملية</p>
+              <h4 className="text-base font-bold text-[#2c241c]">جاري معالجة الدفع عبر كاشير...</h4>
+              <p className="text-xs text-[#7a6a5c]">يرجى الانتظار ثوانٍ قليلة لتأكيد العملية</p>
             </div>
           ) : step === "success" ? (
             <div className="py-10 text-center space-y-3">
               <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 text-3xl grid place-items-center mx-auto animate-bounce border border-emerald-500/40">
                 ✓
               </div>
-              <h4 className="text-lg font-bold text-white">تم الدفع بنجاح!</h4>
-              <p className="text-xs text-slate-300">تم إرسال التأكيد إلى الكاشير وتحديث طلبك فورياً</p>
+              <h4 className="text-lg font-bold text-[#2c241c]">تم الدفع بنجاح!</h4>
+              <p className="text-xs text-[#5c4a3e]">تم إرسال التأكيد إلى الكاشير وتحديث طلبك فورياً</p>
             </div>
           ) : (
             <>
               {/* Tabs */}
-              <div className="grid grid-cols-3 gap-1.5 p-1 bg-[#0b0e17] rounded-xl border border-[#242c47] mb-5">
+              <div className="grid grid-cols-3 gap-1.5 p-1 bg-[#f7f3ee] rounded-xl border border-[#e2d3c2] mb-5">
                 <button
                   type="button"
                   onClick={() => setTab("kashier_card")}
                   className={`py-2 rounded-lg text-xs font-bold transition-all ${
                     tab === "kashier_card"
-                      ? "bg-[#e94560] text-white shadow"
-                      : "text-slate-400 hover:text-white"
+                      ? "bg-[#9c6b4a] text-white shadow"
+                      : "text-[#7a6a5c] hover:text-[#2c241c]"
                   }`}
                 >
                   💳 فيزا / ميزة
@@ -160,8 +160,8 @@ export const PaymentGatewayModal = ({
                   onClick={() => setTab("instapay")}
                   className={`py-2 rounded-lg text-xs font-bold transition-all ${
                     tab === "instapay"
-                      ? "bg-purple-600 text-white shadow"
-                      : "text-slate-400 hover:text-white"
+                      ? "bg-purple-600 text-[#2c241c] shadow"
+                      : "text-[#7a6a5c] hover:text-[#2c241c]"
                   }`}
                 >
                   ⚡ إنستاباي
@@ -171,8 +171,8 @@ export const PaymentGatewayModal = ({
                   onClick={() => setTab("wallet")}
                   className={`py-2 rounded-lg text-xs font-bold transition-all ${
                     tab === "wallet"
-                      ? "bg-rose-600 text-white shadow"
-                      : "text-slate-400 hover:text-white"
+                      ? "bg-rose-600 text-[#2c241c] shadow"
+                      : "text-[#7a6a5c] hover:text-[#2c241c]"
                   }`}
                 >
                   📱 محفظة ذكية
@@ -184,7 +184,7 @@ export const PaymentGatewayModal = ({
                 {tab === "kashier_card" && (
                   <>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">رقم البطاقة البنكية</label>
+                      <label className="block text-xs font-semibold text-[#5c4a3e] mb-1">رقم البطاقة البنكية</label>
                       <div className="relative">
                         <input
                           type="text"
@@ -201,7 +201,7 @@ export const PaymentGatewayModal = ({
 
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">تاريخ الانتهاء</label>
+                        <label className="block text-xs font-semibold text-[#5c4a3e] mb-1">تاريخ الانتهاء</label>
                         <input
                           type="text"
                           required
@@ -213,7 +213,7 @@ export const PaymentGatewayModal = ({
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">رمز الأمان CVV</label>
+                        <label className="block text-xs font-semibold text-[#5c4a3e] mb-1">رمز الأمان CVV</label>
                         <input
                           type="password"
                           required
@@ -227,7 +227,7 @@ export const PaymentGatewayModal = ({
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">اسم حامل البطاقة</label>
+                      <label className="block text-xs font-semibold text-[#5c4a3e] mb-1">اسم حامل البطاقة</label>
                       <input
                         type="text"
                         required
@@ -246,7 +246,7 @@ export const PaymentGatewayModal = ({
                       💡 ادخل عنوان الـ IPA الخاص بك أو رقم الهاتف لتحويل المبلغ مباشرة عبر إنستاباي.
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">عنوان الدفع IPA / رقم إنستاباي</label>
+                      <label className="block text-xs font-semibold text-[#5c4a3e] mb-1">عنوان الدفع IPA / رقم إنستاباي</label>
                       <input
                         type="text"
                         required
@@ -266,7 +266,7 @@ export const PaymentGatewayModal = ({
                       💡 ادعم جميع محافظ مصر (فودافون كاش، اتصالات كاش، أورنج كاش، وي باي، والمحافظ البنكية).
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">رقم المحفظة الإلكترونية</label>
+                      <label className="block text-xs font-semibold text-[#5c4a3e] mb-1">رقم المحفظة الإلكترونية</label>
                       <input
                         type="tel"
                         required
@@ -302,3 +302,4 @@ export const PaymentGatewayModal = ({
   );
 };
 export default PaymentGatewayModal;
+

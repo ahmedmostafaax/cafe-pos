@@ -3,8 +3,11 @@ import AppError from "../../utils/AppError.js";
 import catchAsync from "../../utils/catchAsync.js";
 
 export const createServiceCall = catchAsync(async (req, res, next) => {
-  const { tableId, type, note } = req.body;
+  let { tableId, type, note } = req.body;
   if (!tableId || !type) return next(new AppError("الترابيزة ونوع الطلب مطلوبان", 400));
+  // normalize types from table QR / staff UI
+  if (type === "help" || type === "other") type = "staff";
+  if (type === "napkin") type = "napkins";
 
   const existing = await ServiceCall.findOne({ tableId, type, status: { $in: ["open", "acknowledged"] } });
   if (existing) {
@@ -71,3 +74,4 @@ export const updateServiceCall = catchAsync(async (req, res, next) => {
 
   res.status(200).json({ status: "success", data: { call } });
 });
+

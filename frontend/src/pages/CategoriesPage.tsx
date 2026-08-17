@@ -39,6 +39,6 @@ const CategoriesPage = () => {
 };
 
 const input: React.CSSProperties = { padding: 10, borderRadius: 8, border: "none" };
-const btn: React.CSSProperties = { padding: "10px 16px", borderRadius: 8, border: "none", background: "#e94560", color: "#fff", cursor: "pointer" };
+const btn: React.CSSProperties = { padding: "10px 16px", borderRadius: 8, border: "none", background: "#9c6b4a", color: "#fff", cursor: "pointer" };
 
 export default CategoriesPage;

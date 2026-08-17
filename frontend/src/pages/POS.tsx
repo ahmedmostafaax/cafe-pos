@@ -118,7 +118,7 @@ const POS = () => {
               width: "100%",
               marginTop: 16,
               padding: 12,
-              background: "#e94560",
+              background: "#9c6b4a",
               color: "#fff",
               border: "none",
               borderRadius: 8,

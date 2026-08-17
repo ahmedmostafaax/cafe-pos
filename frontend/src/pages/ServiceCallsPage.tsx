@@ -92,11 +92,11 @@ const ServiceCallsPage = () => {
         <div>
           <div className="flex items-center gap-2">
             <span className="text-2xl animate-bounce">🔔</span>
-            <h1 className="text-2xl md:text-3xl font-bold text-white tracking-wide">
+            <h1 className="text-2xl md:text-3xl font-bold text-[#2c241c] tracking-wide">
               نداءات الطاولات والزبائن الحية
             </h1>
           </div>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-[#7a6a5c] text-sm mt-1">
             مراقبة وتلبية طلبات المساعدة وطلب الحساب من طاولات الـ QR بشكل فوري.
           </p>
         </div>
@@ -107,7 +107,7 @@ const ServiceCallsPage = () => {
             className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2 ${
               soundActive
                 ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
-                : "bg-slate-800 text-slate-400 border-slate-700"
+                : "bg-[#efe6db] text-[#7a6a5c] border-[#e2d3c2]"
             }`}
           >
             <span>{soundActive ? "🔔 التنبيه الصوتي: مفعّل" : "🔕 التنبيه الصوتي: مكتوم"}</span>
@@ -120,11 +120,11 @@ const ServiceCallsPage = () => {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 border-b border-[#242c47] pb-3">
+      <div className="flex items-center gap-2 border-b border-[#e2d3c2] pb-3">
         <button
           onClick={() => setFilter("all")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors ${
-            filter === "all" ? "bg-[#e94560] text-white" : "bg-[#151b2e] text-slate-400 hover:text-white"
+            filter === "all" ? "bg-[#9c6b4a] text-white" : "bg-white text-[#7a6a5c] hover:text-[#2c241c]"
           }`}
         >
           الكل ({calls.length})
@@ -132,7 +132,7 @@ const ServiceCallsPage = () => {
         <button
           onClick={() => setFilter("open")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors ${
-            filter === "open" ? "bg-amber-500 text-slate-900 font-extrabold" : "bg-[#151b2e] text-slate-400 hover:text-white"
+            filter === "open" ? "bg-amber-500 text-slate-900 font-extrabold" : "bg-white text-[#7a6a5c] hover:text-[#2c241c]"
           }`}
         >
           ● نداءات جديدة في الانتظار ({calls.filter((c) => c.status === "open").length})
@@ -140,7 +140,7 @@ const ServiceCallsPage = () => {
         <button
           onClick={() => setFilter("acknowledged")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors ${
-            filter === "acknowledged" ? "bg-sky-500 text-slate-900 font-extrabold" : "bg-[#151b2e] text-slate-400 hover:text-white"
+            filter === "acknowledged" ? "bg-sky-500 text-slate-900 font-extrabold" : "bg-white text-[#7a6a5c] hover:text-[#2c241c]"
           }`}
         >
           ● جاري التلبية ({calls.filter((c) => c.status === "acknowledged").length})
@@ -151,8 +151,8 @@ const ServiceCallsPage = () => {
       {filtered.length === 0 ? (
         <div className="card-luxury py-20 text-center space-y-3">
           <div className="text-4xl">✨</div>
-          <h3 className="text-lg font-bold text-white">لا توجد نداءات طاولات حالياً</h3>
-          <p className="text-slate-400 text-xs">كل طلبات الزبائن تمت تلبيتها بنجاح!</p>
+          <h3 className="text-lg font-bold text-[#2c241c]">لا توجد نداءات طاولات حالياً</h3>
+          <p className="text-[#7a6a5c] text-xs">كل طلبات الزبائن تمت تلبيتها بنجاح!</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -176,17 +176,17 @@ const ServiceCallsPage = () => {
 
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-[#0f1422] border border-[#242c47] grid place-items-center text-2xl">
+                    <div className="w-12 h-12 rounded-2xl bg-[#fffcf8] border border-[#e2d3c2] grid place-items-center text-2xl">
                       {info.icon}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-lg font-bold text-white">طاولة {call.tableId}</h3>
+                        <h3 className="text-lg font-bold text-[#2c241c]">طاولة {call.tableId}</h3>
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${info.color}`}>
                           {info.ar}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-400 mt-0.5">
+                      <p className="text-xs text-[#7a6a5c] mt-0.5">
                         منذ {elapsedMins === 0 ? "لحظات" : `${elapsedMins} دقيقة`}
                       </p>
                     </div>
@@ -194,13 +194,13 @@ const ServiceCallsPage = () => {
                 </div>
 
                 {call.note && (
-                  <div className="p-3 rounded-xl bg-[#0f1422] border border-[#242c47] text-xs text-slate-300 mb-4">
+                  <div className="p-3 rounded-xl bg-[#fffcf8] border border-[#e2d3c2] text-xs text-[#5c4a3e] mb-4">
                     <span className="text-slate-500 font-semibold">ملاحظة الزبون: </span>
                     {call.note}
                   </div>
                 )}
 
-                <div className="flex items-center justify-between gap-2 pt-3 border-t border-[#242c47]">
+                <div className="flex items-center justify-between gap-2 pt-3 border-t border-[#e2d3c2]">
                   <div className="flex items-center gap-1.5 text-xs">
                     <span className={`w-2.5 h-2.5 rounded-full ${isOpen ? "bg-amber-400 animate-ping" : "bg-sky-400"}`} />
                     <span className={isOpen ? "text-amber-300 font-bold" : "text-sky-300 font-bold"}>
@@ -219,7 +219,7 @@ const ServiceCallsPage = () => {
                     )}
                     <button
                       onClick={() => handleUpdate(call._id, "resolved")}
-                      className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-500"
+                      className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-[#2c241c] hover:bg-emerald-500"
                     >
                       ✓ تم الحل
                     </button>
@@ -235,3 +235,4 @@ const ServiceCallsPage = () => {
 };
 
 export default ServiceCallsPage;
+

@@ -132,8 +132,8 @@ const Layout = () => {
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
       isActive
-        ? "bg-gradient-to-r from-[#e94560] to-[#c0392b] text-white shadow-md shadow-[#e94560]/20"
-        : "text-slate-300 hover:bg-[#1e263d] hover:text-white"
+        ? "bg-gradient-to-r from-[#9c6b4a] to-[#6f4a32] text-white shadow-md shadow-[#9c6b4a]/25"
+        : "text-[#5c4a3e] hover:bg-[#efe6db] hover:text-[#2c241c]"
     }`;
 
   const NavItems = () => (
@@ -181,7 +181,7 @@ const Layout = () => {
 
       {isAdmin && (
         <>
-          <div className="h-px bg-[#242c47] my-2.5" />
+          <div className="h-px bg-[#e2d3c2] my-2.5" />
           <div className="px-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
             إدارة النظام
           </div>
@@ -217,7 +217,7 @@ const Layout = () => {
           </NavLink>
           <NavLink to="/busy-mode" className={linkClass} onClick={() => setOpen(false)}>
             <span className="flex items-center gap-2.5">
-              <span>⚡</span> وضع الذروة
+              <span>☕</span> وضع الذروة
             </span>
           </NavLink>
         </>
@@ -226,18 +226,18 @@ const Layout = () => {
   );
 
   return (
-    <div className="flex min-h-screen bg-[#0b0e17] text-slate-100">
+    <div className="flex min-h-screen bg-[#f7f3ee] text-[#2c241c]">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-64 shrink-0 flex-col bg-[#0f1422] border-l border-[#242c47] p-4">
+      <aside className="hidden md:flex w-64 shrink-0 flex-col bg-[#fffcf8] border-l border-[#e2d3c2] p-4">
         {/* Brand */}
-        <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#242c47]">
+        <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#e2d3c2]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#e94560] to-[#c0392b] grid place-items-center text-xl shadow-lg shadow-[#e94560]/30">
-              ⚡
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#9c6b4a] to-[#6f4a32] grid place-items-center text-xl shadow-lg shadow-[#9c6b4a]/30">
+              ☕
             </div>
             <div>
-              <h2 className="text-base font-bold text-white tracking-wider leading-none">GODZ POS</h2>
-              <p className="text-[11px] text-slate-400 mt-1">Café & Restaurant</p>
+              <h2 className="text-base font-bold text-[#2c241c] tracking-wider leading-none">GODZ</h2>
+              <p className="text-[11px] text-[#7a6a5c] mt-1">Café · GODZ</p>
             </div>
           </div>
 
@@ -245,7 +245,7 @@ const Layout = () => {
             onClick={toggleSound}
             title={soundOn ? "كتم الصوت" : "تشغيل التنبيهات"}
             className={`p-1.5 rounded-lg border text-sm transition-colors ${
-              soundOn ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-300" : "bg-[#1e263d] border-[#242c47] text-slate-400"
+              soundOn ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-300" : "bg-[#efe6db] border-[#e2d3c2] text-[#7a6a5c]"
             }`}
           >
             {soundOn ? "🔔" : "🔕"}
@@ -258,22 +258,22 @@ const Layout = () => {
         </nav>
 
         {/* Footer Profile */}
-        <div className="mt-auto pt-4 border-t border-[#242c47] flex flex-col gap-2">
-          <div className="flex items-center justify-between p-2 rounded-xl bg-[#151b2e] border border-[#242c47]">
+        <div className="mt-auto pt-4 border-t border-[#e2d3c2] flex flex-col gap-2">
+          <div className="flex items-center justify-between p-2 rounded-xl bg-[#fff] border border-[#e2d3c2]">
             <div className="flex items-center gap-2 overflow-hidden">
-              <div className="w-8 h-8 rounded-lg bg-[#e94560]/20 text-[#e94560] font-bold grid place-items-center text-xs">
+              <div className="w-8 h-8 rounded-lg bg-[#9c6b4a]/20 text-[#9c6b4a] font-bold grid place-items-center text-xs">
                 {user?.name?.charAt(0) || "U"}
               </div>
               <div className="overflow-hidden">
-                <p className="text-xs font-bold text-white truncate">{user?.name}</p>
-                <p className="text-[10px] text-slate-400 capitalize">{user?.role}</p>
+                <p className="text-xs font-bold text-[#2c241c] truncate">{user?.name}</p>
+                <p className="text-[10px] text-[#7a6a5c] capitalize">{user?.role}</p>
               </div>
             </div>
 
             <button
               onClick={handleLogout}
               title={t("logout")}
-              className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg text-sm transition-colors"
+              className="p-1.5 text-[#7a6a5c] hover:text-rose-500 hover:bg-rose-500/10 rounded-lg text-sm transition-colors"
             >
               🚪
             </button>
@@ -282,22 +282,22 @@ const Layout = () => {
       </aside>
 
       {/* Mobile Top Header */}
-      <div className="md:hidden fixed top-0 inset-x-0 z-40 bg-[#0f1422]/95 backdrop-blur border-b border-[#242c47] px-4 h-14 flex items-center justify-between">
+      <div className="md:hidden fixed top-0 inset-x-0 z-40 bg-[#fffcf8]/95 backdrop-blur border-b border-[#e2d3c2] px-4 h-14 flex items-center justify-between">
         <button
           onClick={() => setOpen(true)}
-          className="p-2 rounded-lg bg-[#1e263d] text-white text-lg"
+          className="p-2 rounded-lg bg-[#efe6db] text-[#2c241c] text-lg"
           aria-label="القائمة"
         >
           ☰
         </button>
 
         <div className="flex items-center gap-2">
-          <span className="text-lg">⚡</span>
-          <span className="font-bold text-white text-base tracking-wider">GODZ POS</span>
+          <span className="text-lg">☕</span>
+          <span className="font-bold text-[#2c241c] text-base tracking-wider">GODZ</span>
         </div>
 
         <div className="flex items-center gap-2">
-          <NavLink to="/service-calls" className="relative p-2 rounded-lg bg-[#1e263d] text-sm">
+          <NavLink to="/service-calls" className="relative p-2 rounded-lg bg-[#efe6db] text-sm">
             🔔
             {pendingCallsCount > 0 && (
               <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-bold grid place-items-center">
@@ -318,18 +318,18 @@ const Layout = () => {
 
       {/* Mobile Drawer */}
       <aside
-        className={`md:hidden fixed top-0 bottom-0 z-50 w-72 bg-[#0f1422] border-l border-[#242c47] p-4 flex flex-col transition-transform duration-300 ${
+        className={`md:hidden fixed top-0 bottom-0 z-50 w-72 bg-[#fffcf8] border-l border-[#e2d3c2] p-4 flex flex-col transition-transform duration-300 ${
           open ? "translate-x-0" : "translate-x-full"
         } ${document.documentElement.dir === "rtl" ? "right-0" : "left-0"}`}
       >
-        <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#242c47]">
+        <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#e2d3c2]">
           <div className="flex items-center gap-2">
-            <span className="text-xl">⚡</span>
-            <span className="font-bold text-white text-lg">GODZ POS</span>
+            <span className="text-xl">☕</span>
+            <span className="font-bold text-[#2c241c] text-lg">GODZ</span>
           </div>
           <button
             onClick={() => setOpen(false)}
-            className="p-1.5 text-slate-400 hover:text-white text-lg"
+            className="p-1.5 text-[#7a6a5c] hover:text-[#2c241c] text-lg"
           >
             ✕
           </button>
@@ -341,7 +341,7 @@ const Layout = () => {
 
         <button
           onClick={handleLogout}
-          className="mt-4 w-full py-2.5 rounded-xl bg-rose-600 font-bold text-white text-sm"
+          className="mt-4 w-full py-2.5 rounded-xl bg-rose-600 font-bold text-[#2c241c] text-sm"
         >
           تسجيل الخروج
         </button>
@@ -350,9 +350,9 @@ const Layout = () => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Floating Action Bar */}
-        <header className="hidden md:flex h-16 bg-[#0f1422]/60 backdrop-blur border-b border-[#242c47] px-6 items-center justify-between sticky top-0 z-30">
-          <div className="text-xs text-slate-400 font-medium">
-            مرحباً بك، <span className="text-white font-bold">{user?.name}</span> ({user?.role})
+        <header className="hidden md:flex h-16 bg-[#fffcf8]/90 backdrop-blur border-b border-[#e2d3c2] px-6 items-center justify-between sticky top-0 z-30">
+          <div className="text-xs text-[#7a6a5c] font-medium">
+            مرحباً بك، <span className="text-[#2c241c] font-bold">{user?.name}</span> ({user?.role})
           </div>
 
           <div className="flex items-center gap-3">
@@ -362,7 +362,7 @@ const Layout = () => {
               className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-2 ${
                 pendingCallsCount > 0
                   ? "bg-rose-500/15 border-rose-500/40 text-rose-300 animate-pulse"
-                  : "bg-[#151b2e] border-[#242c47] text-slate-300 hover:text-white"
+                  : "bg-white border-[#e2d3c2] text-[#5c4a3e] hover:text-[#2c241c]"
               }`}
             >
               <span>🔔</span>
@@ -378,7 +378,7 @@ const Layout = () => {
             <div className="relative">
               <button
                 onClick={() => setShowNotifMenu(!showNotifMenu)}
-                className="p-2 rounded-xl bg-[#151b2e] border border-[#242c47] text-slate-300 hover:text-white text-sm relative"
+                className="p-2 rounded-xl bg-[#fff] border border-[#e2d3c2] text-[#5c4a3e] hover:text-[#2c241c] text-sm relative"
               >
                 🔔
                 {notifications.length > 0 && (
@@ -387,12 +387,12 @@ const Layout = () => {
               </button>
 
               {showNotifMenu && (
-                <div className="absolute left-0 mt-2 w-80 bg-[#151b2e] border border-[#242c47] rounded-2xl shadow-2xl p-3 z-50 space-y-2">
-                  <div className="flex items-center justify-between pb-2 border-b border-[#242c47]">
-                    <span className="text-xs font-bold text-white">آخر الإشعارات</span>
+                <div className="absolute left-0 mt-2 w-80 bg-[#fff] border border-[#e2d3c2] rounded-2xl shadow-2xl p-3 z-50 space-y-2">
+                  <div className="flex items-center justify-between pb-2 border-b border-[#e2d3c2]">
+                    <span className="text-xs font-bold text-[#2c241c]">آخر الإشعارات</span>
                     <button
                       onClick={() => setNotifications([])}
-                      className="text-[11px] text-slate-400 hover:text-slate-200"
+                      className="text-[11px] text-[#7a6a5c] hover:text-[#2c241c]"
                     >
                       مسح الكل
                     </button>
@@ -400,15 +400,15 @@ const Layout = () => {
 
                   <div className="max-h-64 overflow-y-auto space-y-2">
                     {notifications.length === 0 ? (
-                      <p className="text-center text-xs text-slate-500 py-4">لا توجد إشعارات جديدة</p>
+                      <p className="text-center text-xs text-[#9b816b] py-4">لا توجد إشعارات جديدة</p>
                     ) : (
                       notifications.map((n) => (
-                        <div key={n.id} className="p-2.5 rounded-xl bg-[#0f1422] border border-[#242c47] text-xs">
-                          <div className="flex items-center justify-between font-bold text-white">
+                        <div key={n.id} className="p-2.5 rounded-xl bg-[#f7f3ee] border border-[#e2d3c2] text-xs">
+                          <div className="flex items-center justify-between font-bold text-[#2c241c]">
                             <span>{n.title}</span>
-                            <span className="text-[10px] text-slate-400">{n.time}</span>
+                            <span className="text-[10px] text-[#7a6a5c]">{n.time}</span>
                           </div>
-                          <p className="text-slate-300 text-[11px] mt-1">{n.message}</p>
+                          <p className="text-[#5c4a3e] text-[11px] mt-1">{n.message}</p>
                         </div>
                       ))
                     )}
@@ -420,7 +420,7 @@ const Layout = () => {
             {/* Lang Toggle */}
             <button
               onClick={toggleLang}
-              className="px-3 py-1.5 rounded-xl bg-[#151b2e] border border-[#242c47] text-xs font-bold text-slate-300 hover:text-white"
+              className="px-3 py-1.5 rounded-xl bg-[#fff] border border-[#e2d3c2] text-xs font-bold text-[#5c4a3e] hover:text-[#2c241c]"
             >
               {i18n.language === "ar" ? "English" : "عربي"}
             </button>
@@ -437,3 +437,4 @@ const Layout = () => {
 };
 
 export default Layout;
+

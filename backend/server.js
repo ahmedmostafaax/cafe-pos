@@ -3,10 +3,14 @@ import express from "express";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 import http from "http";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
 import { Server } from "socket.io";
 import connectDB from "./database/config/db.js";
 import bootstrap from "./src/modules/index.routes.js";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const server = http.createServer(app);
 
@@ -32,7 +36,7 @@ io.on("connection", (socket) => {
         status: { $in: ["active", "preparing", "ready", "unpaid"] },
       }).sort("-createdAt");
       socket.emit("initial_data", { orders });
-    } catch (err) {
+    } catch {
       socket.emit("error", { message: "Error loading initial data" });
     }
   });
@@ -52,7 +56,6 @@ app.use(
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
-// Rate limits
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 400,
@@ -70,7 +73,6 @@ const authLimiter = rateLimit({
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/create-admin", authLimiter);
 
-// Security headers
 app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
@@ -88,10 +90,23 @@ app.get("/health", (req, res) => {
 
 bootstrap(app);
 
+// Production: serve Vite build
+const distPath = process.env.FRONTEND_DIST || path.join(__dirname, "frontend", "dist");
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api") || req.path.startsWith("/socket.io")) return next();
+    res.sendFile(path.join(distPath, "index.html"), (err) => {
+      if (err) next();
+    });
+  });
+}
+
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log("═══════════════════════════════════════════");
-  console.log("  ⚡ GODZ Cafe POS Backend Running");
-  console.log(`  ⚡ http://localhost:${PORT}`);
+  console.log("  ☕ GODZ Cafe POS Backend Running");
+  console.log(`  ☕ http://localhost:${PORT}`);
   console.log("═══════════════════════════════════════════");
 });
+

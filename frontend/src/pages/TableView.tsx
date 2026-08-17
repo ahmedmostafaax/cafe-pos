@@ -92,11 +92,11 @@ const card: React.CSSProperties = {
   borderRadius: 16,
   padding: 20,
   marginTop: 16,
-  border: "1px solid #2a2a3e",
+  border: "1px solid #4a3a30",
 };
 
 const badge: React.CSSProperties = {
-  background: "#2a2a3e",
+  background: "#4a3a30",
   padding: "4px 10px",
   borderRadius: 20,
   fontSize: 12,
@@ -106,7 +106,7 @@ const btn: React.CSSProperties = {
   padding: "8px 14px",
   borderRadius: 8,
   border: "none",
-  background: "#e94560",
+  background: "#9c6b4a",
   color: "#fff",
   cursor: "pointer",
   fontWeight: 600,
