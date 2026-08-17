@@ -1,12 +1,28 @@
 export type Role = "admin" | "front" | "kitchen" | "bar";
+export type ShiftType = "morning" | "evening" | "night" | "full_day";
 
 export interface User {
   _id: string;
   name: string;
   username: string;
   role: Role;
+  shift?: ShiftType;
+  phone?: string;
+  salary?: number;
+  jobTitle?: string;
+  notes?: string;
   isActive: boolean;
   createdAt?: string;
+}
+
+export interface UserStats {
+  total: number;
+  active: number;
+  shifts: {
+    morning: number;
+    evening: number;
+    night: number;
+  };
 }
 
 export interface Category {
@@ -71,9 +87,14 @@ export interface Order {
   guests: number;
   dineIn: boolean;
   payMethod?: string;
+  paymentStatus?: "unpaid" | "pending_transfer" | "paid" | "failed";
   discount?: number;
   notes?: string;
+  publicToken?: string;
+  rating?: number;
+  ratingComment?: string;
   createdBy?: User | string;
+  extra?: Record<string, any>;
   createdAt: string;
   updatedAt?: string;
 }
@@ -84,6 +105,17 @@ export interface Table {
   seats: number;
   status: "available" | "occupied" | "reserved";
   isActive: boolean;
+}
+
+export interface ServiceCall {
+  _id: string;
+  tableId: string;
+  type: string;
+  note?: string;
+  status: "open" | "acknowledged" | "resolved";
+  handledBy?: { _id: string; name: string } | null;
+  handledAt?: string;
+  createdAt: string;
 }
 
 export interface LoginResponse {
@@ -98,4 +130,5 @@ export interface ApiResponse<T> {
   status: string;
   results?: number;
   data: T;
+  message?: string;
 }

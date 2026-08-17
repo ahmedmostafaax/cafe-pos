@@ -2,11 +2,12 @@ import User from "../../../database/models/user.model.js";
 import AppError from "../../utils/AppError.js";
 import catchAsync from "../../utils/catchAsync.js";
 import ApiFeature from "../../utils/ApiFeature.js";
+import bcrypt from "bcryptjs";
 
 export const getAllUsers = catchAsync(async (req, res, next) => {
   const features = new ApiFeature(User.find().select("-password"), req.query)
     .filter()
-    .search(["name", "username"])
+    .search(["name", "username", "jobTitle", "phone"])
     .sort()
     .paginate();
 
@@ -16,6 +17,23 @@ export const getAllUsers = catchAsync(async (req, res, next) => {
     status: "success",
     results: users.length,
     data: { users },
+  });
+});
+
+export const getUserStats = catchAsync(async (req, res) => {
+  const total = await User.countDocuments();
+  const active = await User.countDocuments({ isActive: true });
+  const morning = await User.countDocuments({ shift: "morning", isActive: true });
+  const evening = await User.countDocuments({ shift: "evening", isActive: true });
+  const night = await User.countDocuments({ shift: "night", isActive: true });
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      total,
+      active,
+      shifts: { morning, evening, night },
+    },
   });
 });
 
@@ -30,7 +48,27 @@ export const getUser = catchAsync(async (req, res, next) => {
 });
 
 export const createUser = catchAsync(async (req, res, next) => {
-  const user = await User.create(req.body);
+  const { name, username, password, role, shift, phone, salary, jobTitle, notes } = req.body;
+  if (!name || !username || !password) {
+    return next(new AppError("الاسم واسم المستخدم وكلمة المرور مطلوبة", 400));
+  }
+
+  const exists = await User.findOne({ username: username.toLowerCase() });
+  if (exists) {
+    return next(new AppError("اسم المستخدم موجود بالفعل", 400));
+  }
+
+  const user = await User.create({
+    name,
+    username: username.toLowerCase(),
+    password,
+    role: role || "front",
+    shift: shift || "morning",
+    phone: phone || "",
+    salary: Number(salary) || 0,
+    jobTitle: jobTitle || "",
+    notes: notes || "",
+  });
   user.password = undefined;
 
   res.status(201).json({
@@ -40,10 +78,16 @@ export const createUser = catchAsync(async (req, res, next) => {
 });
 
 export const updateUser = catchAsync(async (req, res, next) => {
-  // منع تغيير الباسورد من هنا
-  if (req.body.password) delete req.body.password;
+  const updateData = { ...req.body };
 
-  const user = await User.findByIdAndUpdate(req.params.id, req.body, {
+  // If password was provided and not empty, hash it
+  if (updateData.password && updateData.password.trim().length >= 6) {
+    updateData.password = await bcrypt.hash(updateData.password.trim(), 12);
+  } else {
+    delete updateData.password;
+  }
+
+  const user = await User.findByIdAndUpdate(req.params.id, updateData, {
     new: true,
     runValidators: true,
   }).select("-password");
@@ -72,6 +116,6 @@ export const toggleUserStatus = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: "success",
-    data: { user },
+    data: { user: { _id: user._id, name: user.name, isActive: user.isActive } },
   });
 });

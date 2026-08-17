@@ -26,6 +26,29 @@ const userSchema = new mongoose.Schema(
       enum: ["admin", "front", "kitchen", "bar"],
       default: "front",
     },
+    shift: {
+      type: String,
+      enum: ["morning", "evening", "night", "full_day"],
+      default: "morning",
+    },
+    phone: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    salary: {
+      type: Number,
+      default: 0,
+    },
+    jobTitle: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    notes: {
+      type: String,
+      default: "",
+    },
     isActive: {
       type: Boolean,
       default: true,
@@ -49,5 +72,5 @@ userSchema.methods.correctPassword = async function (
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.models.User || mongoose.model("User", userSchema);
 export default User;

@@ -1,32 +1,21 @@
 import express from "express";
 import {
   getAllMenu,
-  getMenuItem,
-  createMenuItem,
-  updateMenuItem,
-  deleteMenuItem,
-  toggleAvailability,
+  getPublicMenu,
+  createMenu,
+  updateMenu,
+  toggleMenu,
+  setSoldOut,
+  deleteMenu,
 } from "./menu.controller.js";
 import { protect, restrictTo } from "../../middleware/auth.js";
 
 const router = express.Router();
-
-router
-  .route("/")
-  .get(getAllMenu)
-  .post(protect, restrictTo("admin"), createMenuItem);
-
-router
-  .route("/:id")
-  .get(getMenuItem)
-  .patch(protect, restrictTo("admin"), updateMenuItem)
-  .delete(protect, restrictTo("admin"), deleteMenuItem);
-
-router.patch(
-  "/:id/toggle",
-  protect,
-  restrictTo("admin"),
-  toggleAvailability
-);
-
+router.get("/public", getPublicMenu);
+router.get("/", getAllMenu);
+router.post("/", protect, restrictTo("admin"), createMenu);
+router.patch("/:id", protect, restrictTo("admin", "kitchen", "bar"), updateMenu);
+router.patch("/:id/toggle", protect, restrictTo("admin", "kitchen", "bar"), toggleMenu);
+router.patch("/:id/sold-out", protect, restrictTo("admin", "kitchen", "bar"), setSoldOut);
+router.delete("/:id", protect, restrictTo("admin"), deleteMenu);
 export default router;

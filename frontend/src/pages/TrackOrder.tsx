@@ -1,14 +1,27 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { getOrderByToken, markTransfer, rateOrder } from "../api/public";
+import { useParams, useNavigate } from "react-router-dom";
+import { getOrderByToken, rateOrder } from "../api/public";
 import type { Order } from "../types";
+import PaymentGatewayModal from "../components/PaymentGatewayModal";
+import Toast from "../components/Toast";
+import Spinner from "../components/Spinner";
+
+const statusSteps = [
+  { key: "active", label: "تم استلام الطلب", icon: "📋" },
+  { key: "preparing", label: "جاري التحضير بالمطبخ والبار", icon: "👨‍🍳" },
+  { key: "ready", label: "الطلب جاهز للاستلام", icon: "✨" },
+  { key: "served", label: "تم التقديم بالهناء والشفاء", icon: "🍽️" },
+];
 
 const TrackOrder = () => {
   const { token } = useParams<{ token: string }>();
+  const navigate = useNavigate();
   const [order, setOrder] = useState<Order | null>(null);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
-  const [done, setDone] = useState(false);
+  const [rated, setRated] = useState(false);
+  const [showGateway, setShowGateway] = useState(false);
+  const [toast, setToast] = useState("");
 
   const load = () => {
     if (!token) return;
@@ -17,106 +30,205 @@ const TrackOrder = () => {
 
   useEffect(() => {
     load();
-    const interval = setInterval(load, 4000);
+    const interval = setInterval(load, 5000);
     return () => clearInterval(interval);
   }, [token]);
 
-  if (!order) {
-    return <div style={{ color: "#fff", textAlign: "center", paddingTop: 80 }}>جاري التحميل أو الطلب غير موجود...</div>;
-  }
-
-  const elapsed = Math.floor((Date.now() - new Date(order.createdAt).getTime()) / 60000);
-
-  const handleTransfer = async (method: string) => {
-    if (!token) return;
-    await markTransfer(token, method);
-    load();
-    alert("تم إبلاغ المدير بالتحويل. انتظر التأكيد.");
-  };
-
   const handleRate = async () => {
     if (!token) return;
-    await rateOrder(token, rating, comment);
-    setDone(true);
+    try {
+      await rateOrder(token, rating, comment);
+      setRated(true);
+      setToast("شكراً جزيلاً على تقييمك ورأيك في الخدمة!");
+    } catch {
+      setToast("تعذر إرسال التقييم");
+    }
   };
 
-  return (
-    <div style={{ minHeight: "100vh", background: "#0f0f1a", color: "#fff", padding: 20 }}>
-      <h1 style={{ textAlign: "center" }}>طلبك {order.orderNumber}</h1>
-      <p style={{ textAlign: "center", color: "#aaa" }}>ترابيزة {order.tableId}</p>
+  if (!order) {
+    return (
+      <div className="min-h-screen bg-[#0b0e17] flex items-center justify-center p-4">
+        <Spinner />
+      </div>
+    );
+  }
 
-      <div style={box}>
-        <div>الحالة: <strong>{order.status}</strong></div>
-        <div>الدفع: <strong>{order.paymentStatus}</strong></div>
-        <div>مرّ عليه: <strong>{elapsed} دقيقة</strong></div>
-        <div style={{ marginTop: 12 }}>
-          {order.items.map((i, idx) => (
-            <div key={idx}>{i.name} × {i.qty}</div>
-          ))}
+  const isPaid = order.paymentStatus === "paid";
+  const elapsed = Math.floor((Date.now() - new Date(order.createdAt).getTime()) / 60000);
+
+  // Status Step Index
+  const currentStepIdx =
+    order.status === "served"
+      ? 3
+      : order.status === "ready"
+      ? 2
+      : order.status === "preparing"
+      ? 1
+      : 0;
+
+  return (
+    <div className="min-h-screen bg-[#0b0e17] text-slate-100 p-4 md:p-8">
+      {toast && <Toast message={toast} onClose={() => setToast("")} />}
+
+      <div className="max-w-2xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#e94560]/15 border border-[#e94560]/30 text-[#e94560] text-xs font-bold">
+            <span>⚡ GODZ CAFÉ LIVE TRACKING</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
+            متابعة طلبك {order.orderNumber}
+          </h1>
+          <p className="text-slate-400 text-xs sm:text-sm">
+            طاولة {order.tableId} • تم الطلب منذ {elapsed} دقيقة
+          </p>
         </div>
-        <div style={{ marginTop: 12, fontWeight: "bold", fontSize: 18 }}>
-          الإجمالي: {order.totalPrice} ج.م
+
+        {/* Live Timeline */}
+        <div className="card-luxury p-6 space-y-4">
+          <h3 className="text-sm font-bold text-white">حالة الطلب اللحظية:</h3>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {statusSteps.map((step, idx) => {
+              const isCurrent = idx === currentStepIdx;
+              const isDone = idx < currentStepIdx;
+
+              return (
+                <div
+                  key={step.key}
+                  className={`p-3 rounded-2xl border text-center transition-all ${
+                    isCurrent
+                      ? "bg-[#e94560]/15 border-[#e94560] text-white shadow-lg shadow-[#e94560]/20 scale-105"
+                      : isDone
+                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                      : "bg-[#0f1422] border-[#242c47] text-slate-500"
+                  }`}
+                >
+                  <div className="text-2xl mb-1">{step.icon}</div>
+                  <div className="text-xs font-bold leading-tight">{step.label}</div>
+                  <div className="text-[10px] mt-1 font-semibold">
+                    {isDone ? "✓ مكتمل" : isCurrent ? "● جاري الآن" : "في الانتظار"}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Order Details & Payment Bar */}
+        <div className="card-luxury p-6 space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-[#242c47]">
+            <span className="font-bold text-white text-base">الأصناف المطلوبة</span>
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-bold border ${
+                isPaid
+                  ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+                  : "bg-amber-500/15 text-amber-300 border-amber-500/30"
+              }`}
+            >
+              {isPaid ? "✓ تم الدفع" : "⏳ في انتظار الدفع"}
+            </span>
+          </div>
+
+          <div className="space-y-2">
+            {order.items.map((i, idx) => (
+              <div
+                key={idx}
+                className="flex items-center justify-between text-sm p-2 rounded-xl bg-[#0f1422]"
+              >
+                <div className="font-bold text-white">
+                  {i.name} <span className="text-xs text-slate-400 font-normal">× {i.qty}</span>
+                </div>
+                <div className="font-mono text-emerald-400 font-bold">{i.price * i.qty} ج.م</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="pt-3 border-t border-[#242c47] flex items-center justify-between">
+            <span className="text-slate-400 font-semibold">الإجمالي المطلوب:</span>
+            <span className="text-2xl font-bold text-white font-mono">{order.totalPrice} ج.م</span>
+          </div>
+
+          {!isPaid && (
+            <div className="pt-2">
+              <button
+                onClick={() => setShowGateway(true)}
+                className="btn-primary w-full py-3.5 text-sm font-bold flex items-center justify-center gap-2"
+              >
+                <span>⚡</span>
+                <span>ادفع الآن عبر بوابة كاشير الإلكترونية ({order.totalPrice} ج.م)</span>
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Rating Section */}
+        <div className="card-luxury p-6 space-y-4">
+          <h3 className="text-base font-bold text-white">⭐ تقييمك للخدمة والطعام</h3>
+
+          {rated ? (
+            <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center text-emerald-300 text-xs">
+              شكراً جزيلاً! تم تسجيل تقييمك بنجاح.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center justify-center gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setRating(star)}
+                    className={`text-3xl transition-transform hover:scale-125 ${
+                      star <= rating ? "text-amber-400" : "text-slate-600"
+                    }`}
+                  >
+                    ★
+                  </button>
+                ))}
+              </div>
+
+              <input
+                type="text"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="اكتب رأيك أو مقترحاتك هنا..."
+                className="input-modern text-xs"
+              />
+
+              <button onClick={handleRate} className="btn-secondary w-full py-2.5 text-xs font-bold">
+                إرسال التقييم
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Back to table menu */}
+        <div className="text-center pt-2">
+          <button
+            onClick={() => navigate(`/table/${order.tableId}`)}
+            className="text-slate-400 hover:text-white text-xs underline"
+          >
+            ← العودة لقائمة المنيو
+          </button>
         </div>
       </div>
 
-      {order.paymentStatus === "unpaid" && (
-        <div style={box}>
-          <h3>اختر طريقة الدفع</h3>
-          <button style={btn} onClick={() => handleTransfer("instapay")}>حولت إنستاباي</button>
-          <button style={btn} onClick={() => handleTransfer("wallet")}>حولت محفظة</button>
-          <p style={{ fontSize: 13, color: "#aaa", marginTop: 8 }}>
-            بعد التحويل اضغط الزر المناسب، المدير هيأكد الاستلام.
-          </p>
-        </div>
-      )}
-
-      {(order.status === "served" || order.status === "archived") && !order.rating && !done && (
-        <div style={box}>
-          <h3>قيّم تجربتك</h3>
-          <div style={{ fontSize: 28, margin: "12px 0" }}>
-            {[1, 2, 3, 4, 5].map((n) => (
-              <span
-                key={n}
-                onClick={() => setRating(n)}
-                style={{ cursor: "pointer", color: n <= rating ? "#f1c40f" : "#555" }}
-              >
-                ★
-              </span>
-            ))}
-          </div>
-          <textarea
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="تعليق (اختياري)"
-            style={{ width: "100%", padding: 10, borderRadius: 8, border: "none", marginBottom: 12 }}
-          />
-          <button style={btn} onClick={handleRate}>إرسال التقييم</button>
-        </div>
-      )}
-
-      {done && <p style={{ textAlign: "center", color: "#2ecc71" }}>شكراً على تقييمك!</p>}
+      {/* Gateway Modal */}
+      <PaymentGatewayModal
+        isOpen={showGateway}
+        onClose={() => setShowGateway(false)}
+        orderNumber={order.orderNumber}
+        orderId={order._id}
+        publicToken={order.publicToken}
+        totalAmount={order.totalPrice}
+        tableId={order.tableId}
+        onSuccess={() => {
+          load();
+          setShowGateway(false);
+          setToast("تم الدفع بنجاح عبر كاشير!");
+        }}
+      />
     </div>
   );
-};
-
-const box: React.CSSProperties = {
-  background: "#1a1a2e",
-  borderRadius: 16,
-  padding: 20,
-  marginBottom: 16,
-};
-
-const btn: React.CSSProperties = {
-  display: "block",
-  width: "100%",
-  padding: 12,
-  marginTop: 8,
-  background: "#e94560",
-  color: "#fff",
-  border: "none",
-  borderRadius: 10,
-  fontWeight: "bold",
-  cursor: "pointer",
 };
 
 export default TrackOrder;

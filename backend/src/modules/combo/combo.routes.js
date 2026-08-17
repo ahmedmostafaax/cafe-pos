@@ -1,0 +1,10 @@
+import express from "express";
+import { listPublic, list, create, update, remove } from "./combo.controller.js";
+import { protect, restrictTo } from "../../middleware/auth.js";
+const router = express.Router();
+router.get("/public", listPublic);
+router.get("/", protect, list);
+router.post("/", protect, restrictTo("admin"), create);
+router.patch("/:id", protect, restrictTo("admin"), update);
+router.delete("/:id", protect, restrictTo("admin"), remove);
+export default router;

@@ -1,0 +1,10 @@
+import express from "express";
+import { listOnline, availableRiders, assign, setDeliveryStatus } from "./delivery.controller.js";
+import { protect, restrictTo } from "../../middleware/auth.js";
+const router = express.Router();
+router.use(protect);
+router.get("/orders", listOnline);
+router.get("/riders", availableRiders);
+router.patch("/:id/assign", restrictTo("admin", "front"), assign);
+router.patch("/:id/status", setDeliveryStatus);
+export default router;

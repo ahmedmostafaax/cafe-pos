@@ -10,6 +10,7 @@ import {
   updateOrderStatus,
   confirmPayment,
   markTransferPending,
+  processGatewayPayment,
   rateOrder,
   deleteOrder,
 } from "./order.controller.js";
@@ -21,6 +22,8 @@ const router = express.Router();
 router.post("/public", createPublicOrder);
 router.get("/track/:token", getOrderByToken);
 router.patch("/track/:token/transfer", markTransferPending);
+router.post("/track/:token/pay-gateway", processGatewayPayment);
+router.post("/pay-gateway", processGatewayPayment);
 router.post("/track/:token/rate", rateOrder);
 
 // Protected
@@ -39,5 +42,6 @@ router
 
 router.patch("/:id/status", protect, updateOrderStatus);
 router.patch("/:id/pay", protect, confirmPayment);
+router.post("/:id/pay-gateway", protect, processGatewayPayment);
 
 export default router;

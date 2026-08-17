@@ -9,6 +9,16 @@ import offerRouter from "./offer/offer.routes.js";
 import couponRouter from "./coupon/coupon.routes.js";
 import attendanceRouter from "./attendance/attendance.routes.js";
 import customerRouter from "./customer/customer.routes.js";
+import tableSessionRouter from "./tableSession/tableSession.routes.js";
+import staffCallRouter from "./staffCall/staffCall.routes.js";
+import serviceCallRouter from "./service-call/service-call.routes.js";
+import wasteRouter from "./waste/waste.routes.js";
+import cashRouter from "./cash/cash.routes.js";
+import reportsRouter from "./reports/reports.routes.js";
+import inventoryRouter from "./inventory/inventory.routes.js";
+import deliveryRouter from "./delivery/delivery.routes.js";
+import comboRouter from "./combo/combo.routes.js";
+import favoriteRouter from "./favorite/favorite.routes.js";
 import AppError from "../utils/AppError.js";
 import globalError from "../middleware/globalError.js";
 
@@ -24,9 +34,18 @@ const bootstrap = (app) => {
   app.use("/api/offers", offerRouter);
   app.use("/api/coupons", couponRouter);
   app.use("/api/attendance", attendanceRouter);
+  app.use("/api/table-sessions", tableSessionRouter);
+  app.use("/api/staff-calls", staffCallRouter);
+  app.use("/api/service-calls", serviceCallRouter);
+  app.use("/api/waste", wasteRouter);
+  app.use("/api/cash", cashRouter);
+  app.use("/api/reports", reportsRouter);
+  app.use("/api/inventory", inventoryRouter);
+  app.use("/api/delivery", deliveryRouter);
+  app.use("/api/combos", comboRouter);
+  app.use("/api/favorites", favoriteRouter);
 
   app.use((req, res, next) => next(new AppError(`المسار غير موجود: ${req.originalUrl}`, 404)));
   app.use(globalError);
 };
-
 export default bootstrap;

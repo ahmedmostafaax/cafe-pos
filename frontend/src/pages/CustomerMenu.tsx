@@ -1,76 +1,100 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { getPublicMenu, createPublicOrder } from "../api/public";
-import { getCategories } from "../api/menu";
-import type { MenuItem, OrderItem, Category } from "../types";
-import Spinner from "../components/Spinner";
+import { callStaff } from "../api/session";
+import type { MenuItem } from "../types";
 import Toast from "../components/Toast";
+import PaymentGatewayModal from "../components/PaymentGatewayModal";
+
+const fallbackImgs: Record<string, string> = {
+  "مشويات": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=600&q=80",
+  "فطور": "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?auto=format&fit=crop&w=600&q=80",
+  "ساندوتشات": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80",
+  "مشروبات ساخنة": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80",
+  "مشروبات باردة": "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80",
+  "حلويات": "https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=600&q=80",
+};
+
+interface CartItem {
+  menuId: string;
+  name: string;
+  price: number;
+  qty: number;
+  station: string;
+}
 
 const CustomerMenu = () => {
   const { tableNo } = useParams<{ tableNo: string }>();
-  const { i18n } = useTranslation();
   const navigate = useNavigate();
-
   const [menu, setMenu] = useState<MenuItem[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [cart, setCart] = useState<OrderItem[]>([]);
-  const [activeCat, setActiveCat] = useState("all");
   const [loading, setLoading] = useState(true);
-  const [notes, setNotes] = useState("");
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
-  const [orderSuccess, setOrderSuccess] = useState<{ token: string; number: string } | null>(null);
+  const [toast, setToast] = useState("");
+  const [activeCat, setActiveCat] = useState("all");
+  const [search, setSearch] = useState("");
+  const [notes, setNotes] = useState("");
+
+  // Staff Call Modal
+  const [showCallModal, setShowCallModal] = useState(false);
+  const [callingStaff, setCallingStaff] = useState(false);
+
+  // Gateway Modal
+  const [showGateway, setShowGateway] = useState(false);
+  const [createdOrder, setCreatedOrder] = useState<any>(null);
+  const [submittingOrder, setSubmittingOrder] = useState(false);
 
   useEffect(() => {
-    Promise.all([getPublicMenu(), getCategories()])
-      .then(([menuData, cats]) => {
-        setMenu(menuData.filter((m) => m.available));
-        setCategories(cats);
-      })
+    getPublicMenu()
+      .then((items) => setMenu(Array.isArray(items) ? items : []))
+      .catch(() => setMenu([]))
       .finally(() => setLoading(false));
   }, []);
 
-  const getName = (item: MenuItem) =>
-    i18n.language === "ar" ? item.nameAr || item.name : item.nameEn || item.name;
+  // Categories extraction
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    menu.forEach((item) => {
+      const catName = typeof item.category === "object" ? item.category?.name || item.category?.nameAr : item.category;
+      if (catName) set.add(catName);
+    });
+    return Array.from(set);
+  }, [menu]);
 
-  const getCatName = (cat: Category) =>
-    i18n.language === "ar" ? cat.nameAr || cat.name : cat.nameEn || cat.name;
-
-  const filtered =
-    activeCat === "all"
-      ? menu
-      : menu.filter((m) => {
-          const id = typeof m.category === "string" ? m.category : m.category?._id;
-          return id === activeCat;
-        });
+  // Filtered Menu
+  const filteredMenu = useMemo(() => {
+    return menu.filter((item) => {
+      const catName = typeof item.category === "object" ? item.category?.name || item.category?.nameAr : item.category;
+      const matchesCat = activeCat === "all" || catName === activeCat;
+      const matchesSearch =
+        item.name.toLowerCase().includes(search.toLowerCase()) ||
+        (item.nameAr && item.nameAr.includes(search)) ||
+        (item.descAr && item.descAr.includes(search));
+      return matchesCat && matchesSearch;
+    });
+  }, [menu, activeCat, search]);
 
   const addToCart = (item: MenuItem) => {
     setCart((prev) => {
       const exists = prev.find((c) => c.menuId === item._id);
       if (exists) {
-        return prev.map((c) =>
-          c.menuId === item._id ? { ...c, qty: c.qty + 1 } : c
-        );
+        return prev.map((c) => (c.menuId === item._id ? { ...c, qty: c.qty + 1 } : c));
       }
       return [
         ...prev,
         {
           menuId: item._id,
-          name: getName(item),
-          station: item.station,
+          name: item.nameAr || item.name,
           price: item.price,
           qty: 1,
-          status: "pending",
+          station: item.station || "kitchen",
         },
       ];
     });
-    setToast(`تم إضافة ${getName(item)}`);
-    setShowCart(true);
+    setToast(`تمت إضافة "${item.nameAr || item.name}" للطلب`);
   };
 
-  const changeQty = (menuId: string, delta: number) => {
+  const updateQty = (menuId: string, delta: number) => {
     setCart((prev) =>
       prev
         .map((c) => (c.menuId === menuId ? { ...c, qty: c.qty + delta } : c))
@@ -78,271 +102,420 @@ const CustomerMenu = () => {
     );
   };
 
-  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
-  const cartCount = cart.reduce((s, i) => s + i.qty, 0);
+  const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const totalCount = cart.reduce((sum, item) => sum + item.qty, 0);
 
-  const submit = async () => {
-    if (!cart.length || !tableNo) return;
-    setSubmitting(true);
+  // Send Call to Staff
+  const handleCallStaff = async (type: string, label: string) => {
     try {
-      const order = await createPublicOrder({
-        tableId: tableNo,
-        items: cart,
-        totalPrice: total,
-        guests: 1,
-        dineIn: true,
-        notes,
-      });
-      setOrderSuccess({ token: order.publicToken!, number: order.orderNumber });
-      setCart([]);
-      setNotes("");
-      setShowCart(false);
+      setCallingStaff(true);
+      await callStaff(tableNo || "1", type, `نداء من طاولة ${tableNo}`);
+      setShowCallModal(false);
+      setToast(`🔔 تم إرسال "${label}" للكاشير والمدير بنجاح!`);
     } catch {
-      setToast("حصل خطأ، حاول مرة تانية");
+      setToast("تعذر إرسال النداء، يرجى إبلاغ الويتر مباشرة");
     } finally {
-      setSubmitting(false);
+      setCallingStaff(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div style={s.center}>
-        <Spinner />
-        <p style={{ color: "#888", marginTop: 16 }}>جاري تحميل المنيو...</p>
-      </div>
-    );
-  }
+  // Submit Order - Cashier Pay option
+  const handleOrderPayCashier = async () => {
+    if (!cart.length) return;
+    try {
+      setSubmittingOrder(true);
+      const res = await createPublicOrder({
+        tableId: tableNo || "1",
+        items: cart,
+        guests: 1,
+        dineIn: true,
+        notes,
+        payMethod: "cashier",
+      });
+      setCart([]);
+      setShowCart(false);
+      navigate(`/track/${res.publicToken}`);
+    } catch (err: any) {
+      setToast(err.response?.data?.message || "تعذر إرسال الطلب");
+    } finally {
+      setSubmittingOrder(false);
+    }
+  };
 
-  // بعد نجاح الطلب
-  if (orderSuccess) {
-    return (
-      <div style={s.successPage}>
-        <div style={{ fontSize: 64 }}>✅</div>
-        <h1 style={{ margin: "16px 0 8px" }}>تم استلام طلبك</h1>
-        <p style={{ color: "#aaa" }}>رقم الطلب: <strong style={{ color: "#e94560" }}>{orderSuccess.number}</strong></p>
-        <p style={{ color: "#666", marginTop: 8 }}>ترابيزة {tableNo}</p>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 32, width: "100%", maxWidth: 320 }}>
-          <button
-            style={s.primaryBtn}
-            onClick={() => navigate(`/track/${orderSuccess.token}`)}
-          >
-            متابعة الطلب
-          </button>
-          <button
-            style={s.secondaryBtn}
-            onClick={() => setOrderSuccess(null)}
-          >
-            اطلب حاجة تانية
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // Submit Order - Gateway Pay option
+  const handleOrderPayGateway = async () => {
+    if (!cart.length) return;
+    try {
+      setSubmittingOrder(true);
+      const res = await createPublicOrder({
+        tableId: tableNo || "1",
+        items: cart,
+        guests: 1,
+        dineIn: true,
+        notes,
+        payMethod: "gateway_kashier",
+      });
+      setCreatedOrder(res);
+      setShowGateway(true);
+    } catch (err: any) {
+      setToast(err.response?.data?.message || "تعذر إنشاء الطلب");
+    } finally {
+      setSubmittingOrder(false);
+    }
+  };
 
   return (
-    <div style={s.page}>
-      {toast && <Toast message={toast} type="success" onClose={() => setToast(null)} />}
+    <div className="min-h-screen bg-[#0b0e17] text-slate-100 pb-28">
+      {toast && <Toast message={toast} onClose={() => setToast("")} />}
 
-      {/* Header */}
-      <header style={s.header}>
-        <div>
-          <div style={{ fontSize: 22, fontWeight: 800 }}>⚡ GODZ</div>
-          <div style={{ color: "#e94560", fontSize: 13, marginTop: 2 }}>
-            ترابيزة {tableNo}
+      {/* Hero Café Header */}
+      <header className="relative bg-gradient-to-b from-[#151b2e] via-[#0f1422] to-[#0b0e17] border-b border-[#242c47] px-4 pt-6 pb-6 text-center">
+        <div className="max-w-3xl mx-auto space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#e94560]/15 border border-[#e94560]/30 text-[#e94560] text-xs font-bold">
+            <span>⚡ GODZ CAFÉ & RESTAURANT</span>
+          </div>
+
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-wide">
+            منيو الطلبات — طاولة {tableNo || "1"}
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
+            اختر أشهى المأكولات والمشروبات واطلبها فورياً من طاولتك مع خيارات الدفع الإلكتروني.
+          </p>
+
+          {/* Table Call Quick Button */}
+          <div className="pt-2">
+            <button
+              onClick={() => setShowCallModal(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-bold hover:bg-amber-500/25 transition-all shadow-md shadow-amber-500/10"
+            >
+              <span>🔔</span>
+              <span>طلب النادل / طلب الحساب للطاولة</span>
+            </button>
           </div>
         </div>
-        <button style={s.cartBtn} onClick={() => setShowCart(true)}>
-          🛒
-          {cartCount > 0 && <span style={s.badge}>{cartCount}</span>}
-        </button>
       </header>
 
-      {/* Categories */}
-      <div style={s.cats}>
-        <button
-          style={{ ...s.catBtn, ...(activeCat === "all" ? s.catActive : {}) }}
-          onClick={() => setActiveCat("all")}
-        >
-          الكل
-        </button>
-        {categories.map((c) => (
-          <button
-            key={c._id}
-            style={{ ...s.catBtn, ...(activeCat === c._id ? s.catActive : {}) }}
-            onClick={() => setActiveCat(c._id)}
-          >
-            {getCatName(c)}
-          </button>
-        ))}
-      </div>
+      {/* Search & Categories Bar */}
+      <div className="sticky top-0 z-30 bg-[#0b0e17]/95 backdrop-blur-md border-b border-[#242c47] p-3 shadow-lg">
+        <div className="max-w-4xl mx-auto space-y-3">
+          {/* Search */}
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="🔍 ابحث في المنيو (كفتة، شاي، برجر...)"
+            className="input-modern py-2.5 text-sm"
+          />
 
-      {/* Menu */}
-      <div style={s.grid}>
-        {filtered.map((item) => (
-          <div key={item._id} style={s.card} onClick={() => addToCart(item)}>
-            <div style={s.cardImg}>{item.station === "bar" ? "🥤" : "🍽️"}</div>
-            <div style={s.cardBody}>
-              <div style={s.cardTitle}>{getName(item)}</div>
-              {(item.descAr || item.desc) && (
-                <div style={s.cardDesc}>
-                  {i18n.language === "ar" ? item.descAr || item.desc : item.descEn || item.desc}
-                </div>
-              )}
-              <div style={s.cardFooter}>
-                <span style={s.price}>{item.price} ج.م</span>
-                <span style={s.plus}>+</span>
-              </div>
-            </div>
+          {/* Category Pills */}
+          <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1">
+            <button
+              onClick={() => setActiveCat("all")}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold shrink-0 transition-all ${
+                activeCat === "all"
+                  ? "bg-[#e94560] text-white shadow-md shadow-[#e94560]/30"
+                  : "bg-[#151b2e] text-slate-300 border border-[#242c47] hover:border-slate-500"
+              }`}
+            >
+              🌟 الكل ({menu.length})
+            </button>
+
+            {categories.map((c) => (
+              <button
+                key={c}
+                onClick={() => setActiveCat(c)}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold shrink-0 transition-all ${
+                  activeCat === c
+                    ? "bg-[#e94560] text-white shadow-md shadow-[#e94560]/30"
+                    : "bg-[#151b2e] text-slate-300 border border-[#242c47] hover:border-slate-500"
+                }`}
+              >
+                {c}
+              </button>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
 
-      {filtered.length === 0 && (
-        <p style={{ textAlign: "center", color: "#555", marginTop: 40 }}>
-          مفيش أصناف في التصنيف ده
-        </p>
-      )}
+      {/* Menu Grid */}
+      <main className="max-w-4xl mx-auto p-4">
+        {loading ? (
+          <div className="py-20 text-center text-slate-400">جاري تحميل قائمة المنيو...</div>
+        ) : filteredMenu.length === 0 ? (
+          <div className="card-luxury py-20 text-center text-slate-400">لا توجد أصناف تطابق بحثك.</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredMenu.map((item) => {
+              const catName = typeof item.category === "object" ? item.category?.name : item.category;
+              const imgUrl = item.imageUrl || fallbackImgs[catName || ""] || fallbackImgs["مشروبات ساخنة"];
+              const inCart = cart.find((c) => c.menuId === item._id);
 
-      {/* Floating cart button */}
-      {cartCount > 0 && !showCart && (
-        <button style={s.floatingCart} onClick={() => setShowCart(true)}>
-          عرض السلة ({cartCount}) — {total} ج.م
-        </button>
-      )}
+              return (
+                <div
+                  key={item._id}
+                  className="card-luxury overflow-hidden flex flex-col justify-between hover:border-[#e94560]/50 transition-all group"
+                >
+                  <div className="relative h-40 overflow-hidden bg-[#0f1422]">
+                    <img
+                      src={imgUrl}
+                      alt={item.nameAr || item.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#151b2e] via-transparent to-transparent" />
+                    <span className="absolute bottom-2 right-2 px-2.5 py-1 rounded-lg bg-[#0b0e17]/80 backdrop-blur text-white text-xs font-bold border border-[#242c47]">
+                      {item.price} ج.م
+                    </span>
+                  </div>
 
-      {/* Cart Drawer */}
-      {showCart && (
-        <div style={s.overlay} onClick={() => setShowCart(false)}>
-          <div style={s.drawer} onClick={(e) => e.stopPropagation()}>
-            <div style={s.drawerHead}>
-              <h3 style={{ margin: 0 }}>سلتك</h3>
-              <button onClick={() => setShowCart(false)} style={s.close}>✕</button>
-            </div>
-
-            {cart.length === 0 ? (
-              <p style={{ color: "#666", textAlign: "center", padding: 30 }}>السلة فارغة</p>
-            ) : (
-              <>
-                {cart.map((c) => (
-                  <div key={c.menuId} style={s.cartRow}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 600 }}>{c.name}</div>
-                      <div style={{ color: "#e94560", fontSize: 13 }}>{c.price} ج.م</div>
+                  <div className="p-4 flex flex-col justify-between flex-1 space-y-3">
+                    <div>
+                      <h3 className="font-bold text-white text-base leading-snug">
+                        {item.nameAr || item.name}
+                      </h3>
+                      {item.descAr && (
+                        <p className="text-xs text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                          {item.descAr}
+                        </p>
+                      )}
                     </div>
-                    <div style={s.qty}>
-                      <button onClick={() => changeQty(c.menuId, -1)} style={s.qtyBtn}>−</button>
-                      <span style={{ minWidth: 24, textAlign: "center" }}>{c.qty}</span>
-                      <button onClick={() => changeQty(c.menuId, 1)} style={s.qtyBtn}>+</button>
+
+                    <div className="pt-2 flex items-center justify-between border-t border-[#242c47]">
+                      <span className="text-[11px] text-slate-400">
+                        {item.station === "bar" ? "🥤 البار" : "👨‍🍳 المطبخ"}
+                      </span>
+
+                      {inCart ? (
+                        <div className="flex items-center gap-2 bg-[#0f1422] border border-[#242c47] rounded-xl p-1">
+                          <button
+                            onClick={() => updateQty(item._id, -1)}
+                            className="w-7 h-7 rounded-lg bg-[#1e263d] text-white font-bold grid place-items-center hover:bg-rose-600"
+                          >
+                            -
+                          </button>
+                          <span className="font-bold text-sm text-white px-1 font-mono">
+                            {inCart.qty}
+                          </span>
+                          <button
+                            onClick={() => updateQty(item._id, 1)}
+                            className="w-7 h-7 rounded-lg bg-[#e94560] text-white font-bold grid place-items-center hover:bg-[#c0392b]"
+                          >
+                            +
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => addToCart(item)}
+                          className="btn-primary text-xs py-2 px-3.5"
+                        >
+                          + أضف للطلب
+                        </button>
+                      )}
                     </div>
                   </div>
-                ))}
-
-                <textarea
-                  placeholder="ملاحظات (اختياري)..."
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  style={s.notes}
-                />
-
-                <div style={s.totalRow}>
-                  <span>الإجمالي</span>
-                  <span style={{ color: "#e94560", fontSize: 20, fontWeight: 800 }}>{total} ج.م</span>
                 </div>
+              );
+            })}
+          </div>
+        )}
+      </main>
 
-                <button style={s.submit} onClick={submit} disabled={submitting}>
-                  {submitting ? "جاري إرسال الطلب..." : "تأكيد الطلب"}
+      {/* Floating Bottom Cart Bar */}
+      {cart.length > 0 && (
+        <div className="fixed bottom-4 inset-x-4 max-w-xl mx-auto z-40">
+          <div className="card-luxury bg-gradient-to-r from-[#1c243c] via-[#242e4c] to-[#1c243c] border-[#e94560]/40 p-4 shadow-2xl flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#e94560] text-white font-bold grid place-items-center shadow-lg">
+                {totalCount}
+              </div>
+              <div>
+                <div className="text-xs text-slate-300">إجمالي الطلب:</div>
+                <div className="text-lg font-bold text-white font-mono">{total} ج.م</div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowCart(true)}
+              className="btn-primary text-sm py-2.5 px-5 shadow-lg shadow-[#e94560]/40"
+            >
+              عرض السلة والدفع ←
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Cart Bottom Sheet Modal */}
+      {showCart && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="card-luxury w-full max-w-lg bg-[#151b2e] border-[#374167] rounded-b-none sm:rounded-2xl p-5 shadow-2xl max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between pb-3 border-b border-[#242c47] mb-3">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <span>🛍️</span> طلب طاولة {tableNo} ({cart.length} أصناف)
+              </h2>
+              <button
+                onClick={() => setShowCart(false)}
+                className="text-slate-400 hover:text-white text-xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Cart Items List */}
+            <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 py-2">
+              {cart.map((item) => (
+                <div
+                  key={item.menuId}
+                  className="flex items-center justify-between p-3 rounded-xl bg-[#0f1422] border border-[#242c47]"
+                >
+                  <div>
+                    <h4 className="font-bold text-white text-sm">{item.name}</h4>
+                    <p className="text-xs text-emerald-400 font-mono mt-0.5">
+                      {item.price} ج.م × {item.qty} = {item.price * item.qty} ج.م
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 bg-[#151b2e] border border-[#242c47] rounded-xl p-1">
+                    <button
+                      onClick={() => updateQty(item.menuId, -1)}
+                      className="w-7 h-7 rounded-lg bg-[#1e263d] text-white font-bold grid place-items-center"
+                    >
+                      -
+                    </button>
+                    <span className="font-bold text-sm text-white px-1.5 font-mono">{item.qty}</span>
+                    <button
+                      onClick={() => updateQty(item.menuId, 1)}
+                      className="w-7 h-7 rounded-lg bg-[#e94560] text-white font-bold grid place-items-center"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Notes */}
+            <div className="mt-3">
+              <input
+                type="text"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="ملاحظات خاصة على الطلب (بدون سكر، زيادة صوص...)"
+                className="input-modern text-xs"
+              />
+            </div>
+
+            {/* Total Summary */}
+            <div className="mt-4 pt-3 border-t border-[#242c47] space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-slate-400">الإجمالي النهائي:</span>
+                <span className="text-xl font-bold text-emerald-400 font-mono">{total} ج.م</span>
+              </div>
+
+              {/* Action Buttons: Cashier vs Gateway */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
+                <button
+                  onClick={handleOrderPayCashier}
+                  disabled={submittingOrder}
+                  className="btn-secondary py-3 text-xs font-bold justify-center"
+                >
+                  💵 الدفع عند الكاشير كاش
                 </button>
 
                 <button
-                  style={{ ...s.secondaryBtn, marginTop: 10 }}
-                  onClick={() => setShowCart(false)}
+                  onClick={handleOrderPayGateway}
+                  disabled={submittingOrder}
+                  className="btn-primary py-3 text-xs font-bold justify-center"
                 >
-                  كمل تسوق
+                  ⚡ دفع فوري (بوابة كاشير)
                 </button>
-              </>
-            )}
+              </div>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Staff Call Modal */}
+      {showCallModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="card-luxury w-full max-w-sm bg-[#151b2e] border-[#374167] p-5 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-[#242c47] pb-3">
+              <h3 className="font-bold text-white text-base flex items-center gap-2">
+                <span>🔔</span> نداء إلى طاقم العمل (طاولة {tableNo})
+              </h3>
+              <button onClick={() => setShowCallModal(false)} className="text-slate-400 text-lg">
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-400">
+              اختر نوع المساعدة وسيصل تنبيه صوتي فوري لشاشة المدير والكاشير:
+            </p>
+
+            <div className="grid grid-cols-2 gap-2.5">
+              <button
+                disabled={callingStaff}
+                onClick={() => handleCallStaff("bill", "طلب الحساب")}
+                className="p-3.5 rounded-xl bg-[#0f1422] border border-[#242c47] hover:border-emerald-500 text-center transition-all group"
+              >
+                <div className="text-2xl mb-1 group-hover:scale-110 transition-transform">💵</div>
+                <div className="text-xs font-bold text-white">طلب الحساب</div>
+              </button>
+
+              <button
+                disabled={callingStaff}
+                onClick={() => handleCallStaff("help", "طلب النادل")}
+                className="p-3.5 rounded-xl bg-[#0f1422] border border-[#242c47] hover:border-amber-500 text-center transition-all group"
+              >
+                <div className="text-2xl mb-1 group-hover:scale-110 transition-transform">🙋‍♂️</div>
+                <div className="text-xs font-bold text-white">طلب النادل</div>
+              </button>
+
+              <button
+                disabled={callingStaff}
+                onClick={() => handleCallStaff("water", "طلب مياه")}
+                className="p-3.5 rounded-xl bg-[#0f1422] border border-[#242c47] hover:border-sky-500 text-center transition-all group"
+              >
+                <div className="text-2xl mb-1 group-hover:scale-110 transition-transform">💧</div>
+                <div className="text-xs font-bold text-white">طلب مياه</div>
+              </button>
+
+              <button
+                disabled={callingStaff}
+                onClick={() => handleCallStaff("napkins", "طلب مناديل")}
+                className="p-3.5 rounded-xl bg-[#0f1422] border border-[#242c47] hover:border-purple-500 text-center transition-all group"
+              >
+                <div className="text-2xl mb-1 group-hover:scale-110 transition-transform">🧻</div>
+                <div className="text-xs font-bold text-white">طلب مناديل</div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Gateway Modal */}
+      {createdOrder && (
+        <PaymentGatewayModal
+          isOpen={showGateway}
+          onClose={() => {
+            setShowGateway(false);
+            setCart([]);
+            setShowCart(false);
+            navigate(`/track/${createdOrder.publicToken}`);
+          }}
+          orderNumber={createdOrder.orderNumber}
+          orderId={createdOrder._id}
+          publicToken={createdOrder.publicToken}
+          totalAmount={createdOrder.totalPrice}
+          tableId={tableNo}
+          onSuccess={() => {
+            setCart([]);
+            setShowCart(false);
+            navigate(`/track/${createdOrder.publicToken}`);
+          }}
+        />
+      )}
     </div>
   );
-};
-
-const s: Record<string, React.CSSProperties> = {
-  page: { minHeight: "100vh", background: "#0b0b12", color: "#fff", paddingBottom: 100 },
-  center: { minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" },
-  successPage: { minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#0b0b12", color: "#fff", padding: 24, textAlign: "center" },
-  header: {
-    display: "flex", justifyContent: "space-between", alignItems: "center",
-    padding: "16px 16px 10px", position: "sticky", top: 0, zIndex: 20,
-    background: "linear-gradient(180deg, #12121c 0%, #0b0b12 100%)",
-  },
-  cartBtn: {
-    background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 12,
-    padding: "10px 14px", fontSize: 20, cursor: "pointer", position: "relative", color: "#fff",
-  },
-  badge: {
-    position: "absolute", top: -6, right: -6, background: "#e94560", color: "#fff",
-    borderRadius: "50%", width: 20, height: 20, fontSize: 11, display: "flex",
-    alignItems: "center", justifyContent: "center", fontWeight: 700,
-  },
-  cats: { display: "flex", gap: 8, padding: "10px 16px", overflowX: "auto" },
-  catBtn: {
-    padding: "8px 16px", borderRadius: 20, border: "1px solid #2a2a3e",
-    background: "transparent", color: "#888", whiteSpace: "nowrap", cursor: "pointer", fontSize: 13,
-  },
-  catActive: { background: "#e94560", borderColor: "#e94560", color: "#fff" },
-  grid: {
-    display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(155px, 1fr))",
-    gap: 12, padding: "8px 16px",
-  },
-  card: { background: "#14141f", borderRadius: 16, overflow: "hidden", cursor: "pointer" },
-  cardImg: { height: 70, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, background: "#1a1a2a" },
-  cardBody: { padding: 12 },
-  cardTitle: { fontWeight: 700, fontSize: 14, marginBottom: 4 },
-  cardDesc: { fontSize: 11, color: "#666", marginBottom: 8, lineHeight: 1.3 },
-  cardFooter: { display: "flex", justifyContent: "space-between", alignItems: "center" },
-  price: { color: "#e94560", fontWeight: 700 },
-  plus: {
-    background: "#e94560", width: 26, height: 26, borderRadius: "50%",
-    display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 16,
-  },
-  floatingCart: {
-    position: "fixed", bottom: 20, left: 16, right: 16, background: "#e94560",
-    color: "#fff", border: "none", borderRadius: 14, padding: 16, fontWeight: 700,
-    fontSize: 15, cursor: "pointer", zIndex: 30, boxShadow: "0 8px 30px rgba(233,69,96,0.4)",
-  },
-  overlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)", zIndex: 50, display: "flex", alignItems: "flex-end" },
-  drawer: {
-    background: "#14141f", width: "100%", maxHeight: "80vh", borderTopLeftRadius: 24,
-    borderTopRightRadius: 24, padding: 20, overflowY: "auto",
-  },
-  drawerHead: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
-  close: { background: "transparent", border: "none", color: "#888", fontSize: 20, cursor: "pointer" },
-  cartRow: { display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderBottom: "1px solid #1f1f2e" },
-  qty: { display: "flex", alignItems: "center", gap: 10 },
-  qtyBtn: {
-    width: 30, height: 30, borderRadius: "50%", border: "1px solid #333",
-    background: "transparent", color: "#fff", fontSize: 16, cursor: "pointer",
-  },
-  notes: {
-    width: "100%", marginTop: 12, padding: 12, borderRadius: 12, border: "1px solid #2a2a3e",
-    background: "#0b0b12", color: "#fff", resize: "none", minHeight: 60,
-  },
-  totalRow: { display: "flex", justifyContent: "space-between", alignItems: "center", margin: "16px 0", fontWeight: 700, fontSize: 17 },
-  submit: {
-    width: "100%", padding: 15, background: "#e94560", color: "#fff", border: "none",
-    borderRadius: 14, fontWeight: 700, fontSize: 15, cursor: "pointer",
-  },
-  primaryBtn: {
-    width: "100%", padding: 15, background: "#e94560", color: "#fff", border: "none",
-    borderRadius: 14, fontWeight: 700, fontSize: 15, cursor: "pointer",
-  },
-  secondaryBtn: {
-    width: "100%", padding: 14, background: "transparent", color: "#aaa", border: "1px solid #333",
-    borderRadius: 14, fontWeight: 600, fontSize: 14, cursor: "pointer",
-  },
 };
 
 export default CustomerMenu;

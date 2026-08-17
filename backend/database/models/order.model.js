@@ -46,6 +46,35 @@ const orderSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    sessionId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "TableSession",
+    },
+    guestId: {
+      type: String,
+      default: "",
+    },
+    guestName: {
+      type: String,
+      default: "",
+    },
+    payShare: {
+      type: String,
+      enum: ["self", "full_table", "partial"],
+      default: "self",
+    },
+    timeline: [
+      {
+        step: String,
+        label: String,
+        at: { type: Date, default: Date.now },
+        note: { type: String, default: "" },
+      },
+    ],
+    etaMinutes: {
+      type: Number,
+      default: 15,
+    },
     items: [orderItemSchema],
     status: {
       type: String,

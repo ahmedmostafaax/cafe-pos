@@ -1,6 +1,7 @@
 import express from "express";
 import {
   getAllUsers,
+  getUserStats,
   getUser,
   createUser,
   updateUser,
@@ -12,6 +13,8 @@ import { protect, restrictTo } from "../../middleware/auth.js";
 const router = express.Router();
 
 router.use(protect, restrictTo("admin"));
+
+router.get("/stats", getUserStats);
 
 router.route("/").get(getAllUsers).post(createUser);
 

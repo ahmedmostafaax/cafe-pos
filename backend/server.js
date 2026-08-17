@@ -33,7 +33,7 @@ io.on("connection", (socket) => {
       }).sort("-createdAt");
       socket.emit("initial_data", { orders });
     } catch (err) {
-      socket.emit("error", { message: "Error" });
+      socket.emit("error", { message: "Error loading initial data" });
     }
   });
 });
@@ -58,19 +58,19 @@ const limiter = rateLimit({
   max: 400,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { status: "fail", message: "عدد الطلبات تجاوز الحد" },
+  message: { status: "fail", message: "طلبات كثيرة جداً، يرجى المحاولة لاحقاً" },
 });
 app.use("/api", limiter);
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
-  message: { status: "fail", message: "محاولات كثيرة على تسجيل الدخول" },
+  message: { status: "fail", message: "محاولات تسجيل دخول كثيرة، يرجى الانتظار" },
 });
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/create-admin", authLimiter);
 
-// Security headers بسيطة
+// Security headers
 app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
@@ -81,7 +81,7 @@ app.use((req, res, next) => {
 app.get("/health", (req, res) => {
   res.json({
     status: "ok",
-    system: "GODZ",
+    system: "GODZ Cafe POS",
     time: new Date().toISOString(),
   });
 });
@@ -91,7 +91,7 @@ bootstrap(app);
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log("═══════════════════════════════════════════");
-  console.log("  GODZ Cafe POS Backend");
-  console.log(`  http://localhost:${PORT}`);
+  console.log("  ⚡ GODZ Cafe POS Backend Running");
+  console.log(`  ⚡ http://localhost:${PORT}`);
   console.log("═══════════════════════════════════════════");
 });

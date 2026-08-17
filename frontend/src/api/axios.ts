@@ -19,9 +19,18 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const isLoginReq = error.config?.url?.includes("/auth/login") || error.config?.url?.includes("/customer/login");
+    const isPublicPage =
+      window.location.pathname.startsWith("/order") ||
+      window.location.pathname.startsWith("/customer") ||
+      window.location.pathname.startsWith("/track") ||
+      window.location.pathname.startsWith("/table");
+
+    if (error.response?.status === 401 && !isLoginReq && !isPublicPage) {
       Cookies.remove("token");
-      window.location.href = "/login";
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(error);
   }

@@ -1,156 +1,76 @@
 import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
-import {
-  getMenu,
-  deleteMenuItem,
-  toggleMenuAvailability,
-  updateMenuItem,
-} from "../api/menu";
-import type { MenuItem } from "../types";
+import api from "../api/axios";
 import Spinner from "../components/Spinner";
 import Toast from "../components/Toast";
 
 const MenuPage = () => {
-  const { t, i18n } = useTranslation();
-  const [menu, setMenu] = useState<MenuItem[]>([]);
+  const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState("");
   const [editId, setEditId] = useState<string | null>(null);
-  const [editPrice, setEditPrice] = useState("");
+  const [image, setImage] = useState("");
+  const [price, setPrice] = useState("");
+  const [prep, setPrep] = useState("10");
 
-  const load = () => {
-    setLoading(true);
-    getMenu()
-      .then(setMenu)
-      .finally(() => setLoading(false));
-  };
+  const load = () =>
+    api.get("/menu").then((r) => setItems(r.data.data.menu || r.data.data.items || [])).finally(() => setLoading(false));
 
   useEffect(() => {
     load();
   }, []);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("هل أنت متأكد من حذف المنتج؟")) return;
-    await deleteMenuItem(id);
-    setToast("تم الحذف");
-    load();
-  };
-
-  const handleToggle = async (id: string) => {
-    await toggleMenuAvailability(id);
-    setToast("تم تغيير الحالة");
-    load();
-  };
-
-  const startEdit = (item: MenuItem) => {
-    setEditId(item._id);
-    setEditPrice(String(item.price));
-  };
-
-  const savePrice = async (id: string) => {
-    const price = Number(editPrice);
-    if (isNaN(price) || price < 0) return alert("سعر غير صحيح");
-    await updateMenuItem(id, { price });
+  const save = async (id: string) => {
+    await api.patch(`/menu/${id}`, {
+      image: image || undefined,
+      price: price !== "" ? Number(price) : undefined,
+      prepMinutes: Number(prep) || 10,
+    });
     setEditId(null);
-    setToast("تم تعديل السعر");
+    setToast("تم التحديث");
+    load();
+  };
+
+  const toggleSold = async (id: string, soldOut: boolean) => {
+    await api.patch(`/menu/${id}/sold-out`, { soldOut: !soldOut });
+    setToast(!soldOut ? "تم تعليم نفد" : "عاد متاحاً");
     load();
   };
 
   if (loading) return <Spinner />;
 
   return (
-    <div style={{ color: "#fff" }}>
-      {toast && <Toast message={toast} type="success" onClose={() => setToast(null)} />}
-
-      <h1 style={{ marginBottom: 20 }}>إدارة المنيو</h1>
-      <p style={{ color: "#666", marginBottom: 20 }}>
-        تقدر تعدل الأسعار وتحذف وتخفي أي منتج
-      </p>
-
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ background: "#1a1a2e" }}>
-              <th style={th}>الاسم</th>
-              <th style={th}>المحطة</th>
-              <th style={th}>السعر</th>
-              <th style={th}>الحالة</th>
-              <th style={th}>إجراءات</th>
-            </tr>
-          </thead>
-          <tbody>
-            {menu.map((item) => (
-              <tr key={item._id} style={{ borderBottom: "1px solid #222" }}>
-                <td style={td}>
-                  {i18n.language === "ar" ? item.nameAr || item.name : item.nameEn || item.name}
-                </td>
-                <td style={td}>
-                  <span style={{
-                    background: item.station === "bar" ? "#1e3a5f" : "#3a1e1e",
-                    padding: "3px 10px",
-                    borderRadius: 20,
-                    fontSize: 12,
-                  }}>
-                    {item.station === "bar" ? "بار" : "مطبخ"}
-                  </span>
-                </td>
-                <td style={td}>
-                  {editId === item._id ? (
-                    <div style={{ display: "flex", gap: 6 }}>
-                      <input
-                        value={editPrice}
-                        onChange={(e) => setEditPrice(e.target.value)}
-                        style={{ width: 70, padding: 6, borderRadius: 6, border: "none" }}
-                      />
-                      <button onClick={() => savePrice(item._id)} style={smallBtn}>حفظ</button>
-                      <button onClick={() => setEditId(null)} style={{ ...smallBtn, background: "#555" }}>إلغاء</button>
-                    </div>
-                  ) : (
-                    <span style={{ fontWeight: 700 }}>{item.price} ج.م</span>
-                  )}
-                </td>
-                <td style={td}>
-                  <span style={{ color: item.available ? "#10b981" : "#ef4444" }}>
-                    {item.available ? "متاح" : "مخفي"}
-                  </span>
-                </td>
-                <td style={td}>
-                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                    <button onClick={() => startEdit(item)} style={smallBtn}>تعديل السعر</button>
-                    <button onClick={() => handleToggle(item._id)} style={{ ...smallBtn, background: "#3b82f6" }}>
-                      {item.available ? "إخفاء" : "إظهار"}
-                    </button>
-                    <button onClick={() => handleDelete(item._id)} style={{ ...smallBtn, background: "#ef4444" }}>
-                      حذف
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="text-[#2c241c]">
+      {toast && <Toast message={toast} type="info" onClose={() => setToast("")} />}
+      <h1 className="text-2xl font-bold text-[#9c6b4a] mb-4">القائمة · صور · نفد</h1>
+      <div className="space-y-3">
+        {items.map((it) => (
+          <div key={it._id} className="carolina-card p-3 flex flex-wrap gap-3 items-center">
+            <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#efe6db] shrink-0">
+              {it.image ? <img src={it.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xl">☕</div>}
+            </div>
+            <div className="flex-1 min-w-[140px]">
+              <div className="font-bold">{it.nameAr || it.name}</div>
+              <div className="text-xs text-[#7a6a5c]">{it.price} ج · {it.prepMinutes || 10} د · {it.station}</div>
+              {it.soldOut && <span className="text-xs text-red-600 font-bold">نفد</span>}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => { setEditId(it._id); setImage(it.image || ""); setPrice(String(it.price)); setPrep(String(it.prepMinutes || 10)); }} className="px-3 py-2 rounded-xl bg-[#efe6db] text-xs font-bold">تعديل</button>
+              <button type="button" onClick={() => toggleSold(it._id, !!it.soldOut)} className="px-3 py-2 rounded-xl bg-[#9c6b4a] text-white text-xs font-bold">
+                {it.soldOut ? "إتاحة" : "نفد"}
+              </button>
+            </div>
+            {editId === it._id && (
+              <div className="w-full grid sm:grid-cols-3 gap-2 pt-2 border-t border-[#e6dcd0]">
+                <input className="carolina-input" placeholder="رابط الصورة" value={image} onChange={(e) => setImage(e.target.value)} />
+                <input className="carolina-input" placeholder="السعر" value={price} onChange={(e) => setPrice(e.target.value)} />
+                <input className="carolina-input" placeholder="دقائق التحضير" value={prep} onChange={(e) => setPrep(e.target.value)} />
+                <button type="button" onClick={() => save(it._id)} className="carolina-btn text-sm">حفظ</button>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
-
-      {menu.length === 0 && (
-        <p style={{ color: "#555", marginTop: 40, textAlign: "center" }}>
-          مفيش منتجات. أضف من التصنيفات أولاً أو شغل الـ seed.
-        </p>
-      )}
     </div>
   );
 };
-
-const th: React.CSSProperties = { padding: 14, textAlign: "right", fontSize: 13, color: "#888" };
-const td: React.CSSProperties = { padding: 14, fontSize: 14 };
-const smallBtn: React.CSSProperties = {
-  padding: "6px 10px",
-  borderRadius: 6,
-  border: "none",
-  background: "#e94560",
-  color: "#fff",
-  cursor: "pointer",
-  fontSize: 12,
-  fontWeight: 600,
-};
-
 export default MenuPage;
