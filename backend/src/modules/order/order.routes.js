@@ -23,7 +23,6 @@ router.post("/public", createPublicOrder);
 router.get("/track/:token", getOrderByToken);
 router.patch("/track/:token/transfer", markTransferPending);
 router.post("/track/:token/pay-gateway", processGatewayPayment);
-router.post("/pay-gateway", processGatewayPayment);
 router.post("/track/:token/rate", rateOrder);
 
 // Protected

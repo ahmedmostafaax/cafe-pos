@@ -11,6 +11,14 @@ import connectDB from "./database/config/db.js";
 import bootstrap from "./src/modules/index.routes.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 16) {
+  console.error(
+    "FATAL: JWT_SECRET is missing or too short. Set a long random value in your environment."
+  );
+  process.exit(1);
+}
+
 const app = express();
 const server = http.createServer(app);
 

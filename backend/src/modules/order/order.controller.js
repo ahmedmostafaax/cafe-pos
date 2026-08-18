@@ -304,12 +304,19 @@ export const deleteOrder = catchAsync(async (req, res, next) => {
 
 // الدفع المباشر عبر بوابة الدفع الإلكترونية (كاشير / إنستاباي / محفظة)
 export const processGatewayPayment = catchAsync(async (req, res, next) => {
-  const { token, orderId, method, gatewayRef, amount } = req.body;
+  // NOTE: this endpoint currently trusts the caller that a payment happened
+  // (no real Kashier signature/webhook verification is wired up yet - see README).
+  // Do not treat this as production-ready for real money until that is added.
+  const { token, method, gatewayRef } = req.body;
+  const orderId = req.params.id;
 
-  const query = token ? { publicToken: token } : { _id: orderId || req.params.id };
+  const query = token ? { publicToken: token } : { _id: orderId };
   const order = await Order.findOne(query);
 
   if (!order) return next(new AppError("الطلب غير موجود", 404));
+  if (order.paymentStatus === "paid") {
+    return next(new AppError("الطلب مدفوع بالفعل", 400));
+  }
 
   order.paymentStatus = "paid";
   order.payMethod = method || "gateway_kashier";
@@ -320,7 +327,9 @@ export const processGatewayPayment = catchAsync(async (req, res, next) => {
     ...order.extra,
     gateway: "Kashier POS Gateway",
     gatewayRef: gatewayRef || `KSH-${Date.now()}`,
-    paidAmount: amount || order.totalPrice,
+    // Amount is always taken from the server-computed order total,
+    // never from client input, to prevent underpayment tampering.
+    paidAmount: order.totalPrice,
     paidAt: new Date().toISOString(),
   };
 
